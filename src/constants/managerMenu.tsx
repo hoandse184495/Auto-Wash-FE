@@ -4,7 +4,6 @@ import {
   CalendarCheck,
   BarChart3,
   Building2,
-  UserCircle,
 } from "lucide-react";
 
 export const managerMenu = [

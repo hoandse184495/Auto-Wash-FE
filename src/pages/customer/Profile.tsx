@@ -6,6 +6,7 @@ import {
   Car,
   Mail,
   Phone,
+  Save,
   ShieldCheck,
   UserRound,
   Wallet,
@@ -35,6 +36,9 @@ function Profile() {
   const [totalSpent, setTotalSpent] = useState(0);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [editForm, setEditForm] = useState({ fullName: "", phone: "" });
 
   useEffect(() => {
     async function loadProfile() {
@@ -57,6 +61,10 @@ function Profile() {
         setFullName(data.Users.FullName);
         setEmail(data.Users.Email);
         setPhone(data.Users.Phone || "Chưa cập nhật");
+        setEditForm({
+          fullName: data.Users.FullName || "",
+          phone: data.Users.Phone || "",
+        });
         setVehicles(data.Vehicles || []);
         setTotalVisits(data.TotalVisits || 0);
         setTotalSpent(data.TotalSpent || 0);
@@ -80,6 +88,43 @@ function Profile() {
 
   function formatMoney(value: number) {
     return value.toLocaleString("vi-VN") + "đ";
+  }
+
+  async function handleSaveProfile() {
+    try {
+      setUpdating(true);
+      setMessage("");
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
+      const payload = {
+        FullName: editForm.fullName.trim(),
+        Phone: editForm.phone.trim(),
+      };
+
+      await axiosClient.put("/api/customers/profile", payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setFullName(payload.FullName);
+      setPhone(payload.Phone || "Chưa cập nhật");
+      setIsEditing(false);
+      setMessage("Cập nhật hồ sơ thành công");
+    } catch (error: unknown) {
+      const apiError = error as {
+        response?: { data?: { message?: string } };
+      };
+
+      setMessage(apiError.response?.data?.message || "Cập nhật hồ sơ thất bại");
+    } finally {
+      setUpdating(false);
+    }
   }
 
   if (loading) {
@@ -170,41 +215,105 @@ function Profile() {
             </aside>
 
             <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-sky-50 text-sky-700">
-                  <UserRound className="h-5 w-5" />
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-sky-50 text-sky-700">
+                    <UserRound className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold uppercase tracking-[0.16em] text-sky-600">
+                      Tài khoản
+                    </p>
+                    <h2 className="text-xl font-bold text-slate-950">
+                      Thông tin tài khoản
+                    </h2>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-bold uppercase tracking-[0.16em] text-sky-600">
-                    Tài khoản
-                  </p>
-                  <h2 className="text-xl font-bold text-slate-950">
-                    Thông tin tài khoản
-                  </h2>
-                </div>
+
+                {!isEditing ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                    className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700"
+                  >
+                    Chỉnh sửa
+                  </button>
+                ) : null}
               </div>
 
               <div className="mt-6 grid gap-4 md:grid-cols-2">
-                <InfoCard
-                  icon={<UserRound className="h-5 w-5" />}
-                  label="Họ và tên"
-                  value={fullName || "Chưa cập nhật"}
-                />
-                <InfoCard
-                  icon={<Mail className="h-5 w-5" />}
-                  label="Email"
-                  value={email || "Chưa cập nhật"}
-                />
-                <InfoCard
-                  icon={<Phone className="h-5 w-5" />}
-                  label="Số điện thoại"
-                  value={phone || "Chưa cập nhật"}
-                />
-                <InfoCard
-                  icon={<ShieldCheck className="h-5 w-5" />}
-                  label="Vai trò"
-                  value="Customer"
-                />
+                {isEditing ? (
+                  <>
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                      <label className="mb-2 block text-sm font-bold text-slate-700">
+                        Họ và tên
+                      </label>
+                      <input
+                        value={editForm.fullName}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, fullName: e.target.value })
+                        }
+                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+                      />
+                    </div>
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                      <label className="mb-2 block text-sm font-bold text-slate-700">
+                        Số điện thoại
+                      </label>
+                      <input
+                        value={editForm.phone}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, phone: e.target.value })
+                        }
+                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+                      />
+                    </div>
+                    <div className="md:col-span-2 flex flex-col gap-3 sm:flex-row">
+                      <button
+                        type="button"
+                        onClick={handleSaveProfile}
+                        disabled={updating}
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+                      >
+                        <Save className="h-4 w-4" />
+                        {updating ? "Đang lưu..." : "Lưu thay đổi"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEditing(false);
+                          setEditForm({ fullName, phone: phone === "Chưa cập nhật" ? "" : phone });
+                        }}
+                        className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:border-slate-400"
+                      >
+                        Hủy
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <InfoCard
+                      icon={<UserRound className="h-5 w-5" />}
+                      label="Họ và tên"
+                      value={fullName || "Chưa cập nhật"}
+                    />
+                    <InfoCard
+                      icon={<Mail className="h-5 w-5" />}
+                      label="Email"
+                      value={email || "Chưa cập nhật"}
+                    />
+                    <InfoCard
+                      icon={<Phone className="h-5 w-5" />}
+                      label="Số điện thoại"
+                      value={phone || "Chưa cập nhật"}
+                    />
+                    <InfoCard
+                      icon={<ShieldCheck className="h-5 w-5" />}
+                      label="Vai trò"
+                      value="Customer"
+                    />
+                  </>
+                )}
               </div>
             </section>
           </div>

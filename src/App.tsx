@@ -1,4 +1,3 @@
-import  AppRoutes  from './routes/AppRoutes';   
 import LoginPage from './pages/auth/Login';
 import { Route, Routes } from 'react-router-dom';
 import HomePage from './pages/HomePage';

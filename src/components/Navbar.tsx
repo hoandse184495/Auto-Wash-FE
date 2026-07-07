@@ -46,6 +46,24 @@ const Navbar = () => {
           >
             Đặt lịch
           </Link>
+
+          {user && (
+            <>
+              <Link
+                to="/customer/bookings"
+                className="font-medium text-gray-700 hover:text-sky-600"
+              >
+                Lịch hẹn
+              </Link>
+
+              <Link
+                to="/customer/services"
+                className="font-medium text-gray-700 hover:text-sky-600"
+              >
+                Khuyến mãi
+              </Link>
+            </>
+          )}
         </div>
 
         {user ? (
@@ -100,6 +118,13 @@ const Navbar = () => {
                   className="block rounded-lg px-4 py-3 font-medium text-slate-700 hover:bg-gray-100"
                 >
                   Thông tin xe
+                </Link>
+
+                <Link
+                  to="/customer/bookings"
+                  className="block rounded-lg px-4 py-3 font-medium text-slate-700 hover:bg-gray-100"
+                >
+                  Lịch hẹn của tôi
                 </Link>
 
                 <button
