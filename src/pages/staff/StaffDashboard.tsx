@@ -5,8 +5,10 @@ import {
   CircleCheckBig,
   ClipboardList,
   Car,
+  ReceiptText,
   RefreshCw,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import StatCard from "../../components/staff/StatCard";
 import axiosClient, { getErrorMessage } from "../../api/axiosClient";
 
@@ -385,6 +387,16 @@ const StaffDashboard = () => {
                               >
                                 Hoàn thành
                               </button>
+
+                              {item.Status === "Completed" && (
+                                <Link
+                                  to="/staff/bookings"
+                                  className="inline-flex items-center gap-1 rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-600"
+                                >
+                                  <ReceiptText size={14} />
+                                  Thanh toán
+                                </Link>
+                              )}
                             </div>
                           </td>
                         </tr>
