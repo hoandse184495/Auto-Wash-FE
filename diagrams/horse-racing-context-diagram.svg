@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2600" height="1700" viewBox="0 0 2600 1700">
+  <defs>
+    <pattern id="smallGrid" width="18" height="18" patternUnits="userSpaceOnUse">
+      <path d="M 18 0 L 0 0 0 18" fill="none" stroke="#eef1f5" stroke-width="1"/>
+    </pattern>
+    <pattern id="grid" width="90" height="90" patternUnits="userSpaceOnUse">
+      <rect width="90" height="90" fill="url(#smallGrid)"/>
+      <path d="M 90 0 L 0 0 0 90" fill="none" stroke="#d6dce5" stroke-width="1.4"/>
+    </pattern>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#111"/>
+    </marker>
+    <style>
+      .bg { fill: url(#grid); }
+      .guide { stroke: #b9c0ca; stroke-width: 2; stroke-dasharray: 7 9; }
+      .actor { fill: #fff; stroke: #111; stroke-width: 2.2; }
+      .system { fill: #fff; stroke: #111; stroke-width: 2.8; }
+      .actorText { font: 400 30px Arial, Helvetica, sans-serif; fill: #111; }
+      .systemText { font: 400 24px Arial, Helvetica, sans-serif; fill: #111; }
+      .flow { fill: none; stroke: #111; stroke-width: 2.4; marker-end: url(#arrow); }
+      .labelBox { fill: #fff; fill-opacity: .94; stroke: none; }
+      .label { font: 400 17px Arial, Helvetica, sans-serif; fill: #111; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="2600" height="1700"/>
+  <line class="guide" x1="1300" y1="0" x2="1300" y2="1700"/>
+  <line class="guide" x1="0" y1="850" x2="2600" y2="850"/>
+
+  <!-- Process -->
+  <circle cx="1300" cy="850" r="430" class="system"/>
+  <text x="1300" y="835" text-anchor="middle" class="systemText">
+    <tspan x="1300" dy="0">Horse Racing Tournament</tspan>
+    <tspan x="1300" dy="34">Management System</tspan>
+  </text>
+
+  <!-- External entities -->
+  <rect x="70" y="180" width="540" height="210" class="actor"/>
+  <text x="340" y="300" text-anchor="middle" class="actorText">Horse Owner</text>
+
+  <rect x="70" y="745" width="540" height="210" class="actor"/>
+  <text x="340" y="865" text-anchor="middle" class="actorText">Jockey</text>
+
+  <rect x="70" y="1310" width="540" height="210" class="actor"/>
+  <text x="340" y="1430" text-anchor="middle" class="actorText">Spectator</text>
+
+  <rect x="1990" y="250" width="540" height="210" class="actor"/>
+  <text x="2260" y="370" text-anchor="middle" class="actorText">Admin</text>
+
+  <rect x="1990" y="1240" width="540" height="210" class="actor"/>
+  <text x="2260" y="1360" text-anchor="middle" class="actorText">Race Referee</text>
+
+  <!-- Horse Owner -->
+  <path class="flow" d="M 610 355 C 760 430, 875 505, 988 570"/>
+  <rect class="labelBox" x="640" y="425" width="505" height="88"/>
+  <text x="655" y="449" class="label">
+    <tspan x="655" dy="0">Register account; register horse; update horse information;</tspan>
+    <tspan x="655" dy="24">choose/hire jockey; confirm horse participation in race</tspan>
+  </text>
+
+  <path class="flow" d="M 952 535 C 835 445, 730 350, 610 235"/>
+  <rect class="labelBox" x="690" y="245" width="520" height="88"/>
+  <text x="705" y="269" class="label">
+    <tspan x="705" dy="0">Registration success notification; list of horses; schedule;</tspan>
+    <tspan x="705" dy="24">race information; match results; bonus; ranking table</tspan>
+  </text>
+
+  <!-- Jockey -->
+  <path class="flow" d="M 610 895 C 720 890, 780 882, 870 875"/>
+  <rect class="labelBox" x="655" y="900" width="465" height="64"/>
+  <text x="670" y="925" class="label">
+    <tspan x="670" dy="0">Register account; accept/reject invitation;</tspan>
+    <tspan x="670" dy="24">confirm race participation</tspan>
+  </text>
+
+  <path class="flow" d="M 870 825 C 780 818, 720 810, 610 805"/>
+  <rect class="labelBox" x="655" y="772" width="505" height="64"/>
+  <text x="670" y="797" class="label">
+    <tspan x="670" dy="0">Horse riding invitation; list of races; horse information;</tspan>
+    <tspan x="670" dy="24">schedule; personal results; ranking table</tspan>
+  </text>
+
+  <!-- Spectator -->
+  <path class="flow" d="M 610 1380 C 760 1305, 875 1215, 988 1130"/>
+  <rect class="labelBox" x="650" y="1300" width="430" height="64"/>
+  <text x="665" y="1325" class="label">
+    <tspan x="665" dy="0">Predict results; search tournament;</tspan>
+    <tspan x="665" dy="24">search race schedule</tspan>
+  </text>
+
+  <path class="flow" d="M 952 1165 C 835 1265, 730 1350, 610 1465"/>
+  <rect class="labelBox" x="700" y="1420" width="530" height="88"/>
+  <text x="715" y="1444" class="label">
+    <tspan x="715" dy="0">Schedule; tournament information; live results; ranking table;</tspan>
+    <tspan x="715" dy="24">prediction results; reward notification</tspan>
+  </text>
+
+  <!-- Admin -->
+  <path class="flow" d="M 1990 425 C 1840 505, 1730 590, 1612 720"/>
+  <rect class="labelBox" x="1590" y="505" width="580" height="112"/>
+  <text x="1605" y="529" class="label">
+    <tspan x="1605" dy="0">Manage accounts; assign permissions; create tournament/round/race;</tspan>
+    <tspan x="1605" dy="24">approve horse registration; assign referee;</tspan>
+    <tspan x="1605" dy="24">publish results; manage predictions</tspan>
+  </text>
+
+  <path class="flow" d="M 1648 685 C 1760 545, 1855 455, 1990 325"/>
+  <rect class="labelBox" x="1600" y="290" width="500" height="88"/>
+  <text x="1615" y="314" class="label">
+    <tspan x="1615" dy="0">User list; horse list; jockey list; registration list;</tspan>
+    <tspan x="1615" dy="24">match results; statistical reports</tspan>
+  </text>
+
+  <!-- Race Referee -->
+  <path class="flow" d="M 1990 1320 C 1840 1235, 1730 1145, 1612 980"/>
+  <rect class="labelBox" x="1625" y="1185" width="505" height="88"/>
+  <text x="1640" y="1209" class="label">
+    <tspan x="1640" dy="0">Inspect horses; enter results; record violations;</tspan>
+    <tspan x="1640" dy="24">create report; confirm results</tspan>
+  </text>
+
+  <path class="flow" d="M 1648 1015 C 1760 1160, 1855 1250, 1990 1390"/>
+  <rect class="labelBox" x="1610" y="1395" width="400" height="64"/>
+  <text x="1625" y="1420" class="label">
+    <tspan x="1625" dy="0">List of races; horse list; jockey list;</tspan>
+    <tspan x="1625" dy="24">race information</tspan>
+  </text>
+</svg>
