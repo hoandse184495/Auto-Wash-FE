@@ -48,6 +48,15 @@ type StaffBooking = {
   BookingItems?: BookingItem[];
 };
 
+const statusPriority: Record<string, number> = {
+  Cancelled: 0,
+  Pending: 1,
+  Confirmed: 2,
+  CheckedIn: 3,
+  InProgress: 4,
+  Completed: 5,
+};
+
 function formatTime(value: string | null | undefined) {
   if (!value) {
     return "--:--";
@@ -60,6 +69,86 @@ function formatTime(value: string | null | undefined) {
   }
 
   return text.substring(0, 5);
+}
+
+function formatDateKey(value: string | null | undefined) {
+  if (!value) {
+    return "NO_DATE";
+  }
+
+  const text = String(value);
+  if (text.includes("T")) {
+    return text.slice(0, 10);
+  }
+
+  try {
+    return new Date(text).toISOString().slice(0, 10);
+  } catch {
+    return text;
+  }
+}
+
+function dedupeBookings(bookings: StaffBooking[]) {
+  const bestByKey = new Map<
+    string,
+    { booking: StaffBooking; item: BookingItem; priority: number }
+  >();
+
+  for (const booking of bookings) {
+    const customerPhone = booking.Customers?.Users?.Phone || "NO_PHONE";
+    const dateKey = formatDateKey(booking.BookingDate);
+    const timeKey = formatTime(booking.StartTime);
+
+    for (const item of booking.BookingItems || []) {
+      const plate = (item.Vehicles?.LicensePlate || `VID-${item.BookingItemID}`)
+        .trim()
+        .toUpperCase();
+      const key = [booking.BranchID, customerPhone, dateKey, timeKey, plate].join("|");
+
+      const candidatePriority = statusPriority[item.Status] ?? 0;
+      const current = bestByKey.get(key);
+
+      if (!current) {
+        bestByKey.set(key, { booking, item, priority: candidatePriority });
+        continue;
+      }
+
+      if (candidatePriority > current.priority) {
+        bestByKey.set(key, { booking, item, priority: candidatePriority });
+        continue;
+      }
+
+      if (
+        candidatePriority === current.priority &&
+        item.BookingItemID > current.item.BookingItemID
+      ) {
+        bestByKey.set(key, { booking, item, priority: candidatePriority });
+      }
+    }
+  }
+
+  const groupMap = new Map<number, StaffBooking>();
+
+  for (const selected of bestByKey.values()) {
+    const groupId = selected.booking.BookingGroupID;
+    const existing = groupMap.get(groupId);
+
+    if (!existing) {
+      groupMap.set(groupId, {
+        ...selected.booking,
+        BookingItems: [selected.item],
+      });
+      continue;
+    }
+
+    existing.BookingItems = [...(existing.BookingItems || []), selected.item];
+  }
+
+  return Array.from(groupMap.values()).sort((a, b) => {
+    const aTime = formatTime(a.StartTime);
+    const bTime = formatTime(b.StartTime);
+    return aTime.localeCompare(bTime);
+  });
 }
 
 function getUserFromStorage() {
@@ -114,7 +203,8 @@ const StaffDashboard = () => {
         },
       });
 
-      const data: StaffBooking[] = res.data.data || [];
+      const rawData: StaffBooking[] = res.data.data || [];
+      const data = dedupeBookings(rawData);
 
       setBookings(data);
 

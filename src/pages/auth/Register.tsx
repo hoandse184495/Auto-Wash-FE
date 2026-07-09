@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axiosClient from "../../api/axiosClient";
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phoneRegex = /^[0-9]{9,15}$/;
+
 function Register() {
   const navigate = useNavigate();
 
@@ -16,14 +19,19 @@ function Register() {
   const [isCodeSent, setIsCodeSent] = useState(false);
 
   async function handleSendCode() {
-    if (!email) {
+    if (!email.trim()) {
       setMessage("Vui lòng nhập email trước");
+      return;
+    }
+
+    if (!emailRegex.test(email.trim())) {
+      setMessage("Email không hợp lệ");
       return;
     }
 
     try {
       await axiosClient.post("/api/auth/send-register-code", {
-        email,
+        email: email.trim(),
       });
 
       setIsCodeSent(true);
@@ -35,6 +43,41 @@ function Register() {
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!fullName.trim()) {
+      setMessage("Vui lòng nhập họ và tên");
+      return;
+    }
+
+    if (!phone.trim()) {
+      setMessage("Vui lòng nhập số điện thoại");
+      return;
+    }
+
+    if (!phoneRegex.test(phone.trim())) {
+      setMessage("Số điện thoại không hợp lệ");
+      return;
+    }
+
+    if (!email.trim()) {
+      setMessage("Vui lòng nhập email");
+      return;
+    }
+
+    if (!emailRegex.test(email.trim())) {
+      setMessage("Email không hợp lệ");
+      return;
+    }
+
+    if (!password) {
+      setMessage("Vui lòng nhập mật khẩu");
+      return;
+    }
+
+    if (password.length < 6) {
+      setMessage("Mật khẩu phải có ít nhất 6 ký tự");
+      return;
+    }
 
     if (password !== confirmPassword) {
       setMessage("Mật khẩu xác nhận không khớp");
@@ -58,9 +101,9 @@ function Register() {
 
     try {
       await axiosClient.post("/api/auth/register", {
-        fullName,
-        phone,
-        email,
+        fullName: fullName.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
         password,
         code,
       });

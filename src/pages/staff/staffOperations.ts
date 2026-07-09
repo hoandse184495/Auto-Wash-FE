@@ -182,7 +182,7 @@ export function getNextStatus(status: string) {
 }
 
 export function flattenStaffBookings(bookings: StaffBooking[]): StaffFlatItem[] {
-  return bookings.flatMap((booking) => {
+  const flattened = bookings.flatMap((booking) => {
     const customerName = booking.Customers?.Users?.FullName || "Chưa có tên";
     const customerPhone = booking.Customers?.Users?.Phone || "Chưa có SĐT";
     const items = booking.BookingItems || [];
@@ -217,11 +217,50 @@ export function flattenStaffBookings(bookings: StaffBooking[]): StaffFlatItem[] 
       };
     });
   });
+
+  const statusPriority: Record<string, number> = {
+    Cancelled: 0,
+    Pending: 1,
+    Confirmed: 2,
+    CheckedIn: 3,
+    InProgress: 4,
+    Completed: 5,
+  };
+
+  const deduped = new Map<string, StaffFlatItem>();
+
+  for (const item of flattened) {
+    const vehicleKey = item.licensePlate.trim().toUpperCase() || `VID-${item.bookingItemId}`;
+    const dateKey = item.bookingDate ? new Date(item.bookingDate).toISOString().slice(0, 10) : "NO_DATE";
+    const timeKey = item.startTime ? formatTime(item.startTime) : "NO_TIME";
+    const key = [item.branchId, item.customerPhone, dateKey, timeKey, vehicleKey].join("|");
+
+    const current = deduped.get(key);
+    if (!current) {
+      deduped.set(key, item);
+      continue;
+    }
+
+    const currentPriority = statusPriority[current.status] ?? 0;
+    const candidatePriority = statusPriority[item.status] ?? 0;
+
+    if (candidatePriority > currentPriority) {
+      deduped.set(key, item);
+      continue;
+    }
+
+    if (candidatePriority === currentPriority && item.bookingItemId > current.bookingItemId) {
+      deduped.set(key, item);
+    }
+  }
+
+  return Array.from(deduped.values());
 }
 
 export async function fetchTodayBookings(params?: {
   customerName?: string;
   status?: string;
+  bookingDate?: string;
 }) {
   try {
     const response = await axiosClient.get("/api/staff-operations/today-bookings", {

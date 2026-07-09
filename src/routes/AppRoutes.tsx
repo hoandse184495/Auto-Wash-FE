@@ -18,6 +18,7 @@ import ManagerBranchInfo from "../pages/manager/ManagerBranchInfo";
 
 import AdminLayout from "../layouts/AdminLayout";
 import AdminDashboard from "../pages/admin/AdminDashboard";
+import AdminProfile from "../pages/admin/AdminProfile";
 import AdminManagerManagement from "../pages/admin/AdminManagerManagement";
 import AdminStaffManagement from "../pages/admin/AdminStaffManagement";
 import AdminBranches from "../pages/admin/AdminBranches";
@@ -160,6 +161,7 @@ const AppRoutes = () => {
           }
         >
           <Route index element={<AdminDashboard />} />
+          <Route path="profile" element={<AdminProfile />} />
           <Route path="managers" element={<AdminManagerManagement />} />
           <Route path="staff" element={<AdminStaffManagement />} />
           <Route path="branches" element={<AdminBranches />} />

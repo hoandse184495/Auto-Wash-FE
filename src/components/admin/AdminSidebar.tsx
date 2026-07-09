@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { LogOut, Shield, User } from "lucide-react";
 import { adminMenu } from "../../constants/adminMenu";
@@ -21,7 +21,18 @@ const AdminSidebar: React.FC = () => {
     return null;
   };
 
-  const user = getUserFromStorage();
+  const [user, setUser] = useState(getUserFromStorage());
+
+  useEffect(() => {
+    const syncUser = () => setUser(getUserFromStorage());
+    window.addEventListener("user-updated", syncUser);
+    window.addEventListener("storage", syncUser);
+
+    return () => {
+      window.removeEventListener("user-updated", syncUser);
+      window.removeEventListener("storage", syncUser);
+    };
+  }, []);
 
   return (
     <aside className="fixed left-0 top-0 z-50 flex h-screen w-64 flex-col justify-between border-r border-slate-800 bg-gradient-to-b from-slate-900 to-slate-950 text-white">
@@ -76,14 +87,19 @@ const AdminSidebar: React.FC = () => {
 
       {/* User + Logout */}
       <div className="border-t border-slate-800 bg-slate-950/40 p-4">
-        <div className="mb-4 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => navigate("/admin/profile")}
+          className="mb-4 flex w-full items-center gap-3 rounded-lg p-2 text-left transition hover:bg-slate-800/70"
+          title="Mở hồ sơ"
+        >
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-pink-600 border border-rose-400/50 shadow-lg shadow-rose-500/20">
             <User size={18} className="text-white" />
           </div>
 
           <div className="overflow-hidden">
             <p className="truncate text-sm font-semibold">
-              {user?.fullName || user?.username || "Admin"}
+              {user?.fullName || user?.FullName || user?.username || "Admin"}
             </p>
 
             <p className="flex items-center gap-1 text-xs text-emerald-400">
@@ -91,7 +107,7 @@ const AdminSidebar: React.FC = () => {
               Đang hoạt động
             </p>
           </div>
-        </div>
+        </button>
 
         <button
           onClick={handleLogout}

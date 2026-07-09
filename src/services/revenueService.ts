@@ -18,10 +18,20 @@ export interface CashflowResponse {
   };
 }
 
+export interface BranchPerformanceItem {
+  branchID: number;
+  todayBookings: number;
+  monthBookings: number;
+  monthlyRevenue: number;
+}
+
 export interface RevenueQuery {
   BranchID?: number;
   StartDate?: string;
   EndDate?: string;
+  branchId?: number;
+  startDate?: string;
+  endDate?: string;
 }
 
 const getAuthHeader = () => {
@@ -32,9 +42,13 @@ const getAuthHeader = () => {
 const revenueService = {
   async getDailyCashflow(query: RevenueQuery = {}): Promise<CashflowResponse> {
     const params: Record<string, string> = {};
-    if (query.BranchID !== undefined) params.BranchID = String(query.BranchID);
-    if (query.StartDate) params.StartDate = query.StartDate;
-    if (query.EndDate) params.EndDate = query.EndDate;
+    const branchId = query.branchId ?? query.BranchID;
+    const startDate = query.startDate ?? query.StartDate;
+    const endDate = query.endDate ?? query.EndDate;
+
+    if (branchId !== undefined) params.branchId = String(branchId);
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
 
     const response = await axiosClient.get("/api/dashboard/daily-cashflow", {
       headers: getAuthHeader(),
@@ -46,6 +60,24 @@ const revenueService = {
     }
 
     return response.data.data as CashflowResponse;
+  },
+
+  async getBranchPerformance(branchId?: number): Promise<BranchPerformanceItem[]> {
+    const params: Record<string, string> = {};
+    if (branchId !== undefined) {
+      params.branchId = String(branchId);
+    }
+
+    const response = await axiosClient.get("/api/dashboard/branch-performance", {
+      headers: getAuthHeader(),
+      params,
+    });
+
+    if (!response.data?.success || !Array.isArray(response.data.data)) {
+      return [];
+    }
+
+    return response.data.data as BranchPerformanceItem[];
   },
 };
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { Fragment, useState, useEffect, useCallback } from "react";
 import {
   Users,
   Phone,
@@ -41,6 +41,13 @@ const getTierIcon = (tierName: string) => {
 
 const formatNumber = (value: number): string =>
   new Intl.NumberFormat("vi-VN").format(value);
+
+const formatCurrency = (value: number): string =>
+  new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(value);
 
 const formatDate = (dateStr: string): string => {
   if (!dateStr) return "—";
@@ -145,6 +152,12 @@ const AdminCustomers = () => {
     ...t,
     count: customers.filter((c) => c.loyalty.tierId === t.TierID).length,
   }));
+
+  const getNextTier = (customer: CustomerDetail) => {
+    return [...tierConfigs]
+      .filter((tier) => Number(tier.MinSpent) > customer.totalSpent)
+      .sort((left, right) => Number(left.MinSpent) - Number(right.MinSpent))[0] ?? null;
+  };
 
   return (
     <div className="space-y-6">
@@ -344,10 +357,12 @@ const AdminCustomers = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {filtered.map((customer) => (
-                    <>
+                  {filtered.map((customer) => {
+                    const nextTier = getNextTier(customer);
+
+                    return (
+                    <Fragment key={customer.customerId}>
                       <tr
-                        key={customer.userId}
                         className="hover:bg-slate-50/60 transition"
                       >
                         {/* Customer Name */}
@@ -378,7 +393,7 @@ const AdminCustomers = () => {
                             </p>
                             <p className="flex items-center gap-1.5 text-xs text-slate-500 truncate max-w-[160px]">
                               <Mail size={12} className="text-slate-400 shrink-0" />
-                              {customer.email}
+                              {customer.email || "Chưa cập nhật"}
                             </p>
                           </div>
                         </td>
@@ -406,7 +421,7 @@ const AdminCustomers = () => {
                               {formatNumber(customer.loyalty.lifetimePoints)} điểm
                             </p>
                             <p className="text-xs text-slate-400">
-                              Hiện tại: {formatNumber(customer.loyalty.currentPoints)} đ
+                              Hiện tại: {formatNumber(customer.loyalty.currentPoints)} điểm
                             </p>
                           </div>
                         </td>
@@ -515,7 +530,7 @@ const AdminCustomers = () => {
                               <div className="rounded-lg border border-slate-200 bg-white p-4">
                                 <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
                                   <Star size={14} className="text-amber-500" />
-                                  Tích điểm
+                                  Tích điểm và chi tiêu
                                 </h4>
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between text-sm">
@@ -534,21 +549,24 @@ const AdminCustomers = () => {
                                       {formatNumber(customer.loyalty.lifetimePoints)}
                                     </span>
                                   </div>
-                                  {customer.loyalty.tierConfig &&
-                                    customer.loyalty.tierConfig.MinSpent && (
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="text-slate-500">
+                                      Tổng chi tiêu
+                                    </span>
+                                    <span className="font-semibold text-slate-800">
+                                      {formatCurrency(customer.totalSpent)}
+                                    </span>
+                                  </div>
+                                  {nextTier && (
                                       <div className="flex items-center justify-between text-sm">
                                         <span className="text-slate-500">
                                           Đến hạng tiếp
                                         </span>
                                         <span className="text-xs text-slate-400">
                                           Cần{" "}
-                                          {formatNumber(
-                                            Number(
-                                              customer.loyalty.tierConfig.MinSpent
-                                            ) -
-                                              customer.loyalty.lifetimePoints
-                                          )}{" "}
-                                          đ
+                                          {formatCurrency(
+                                            Math.max(Number(nextTier.MinSpent) - customer.totalSpent, 0)
+                                          )}
                                         </span>
                                       </div>
                                     )}
@@ -566,7 +584,23 @@ const AdminCustomers = () => {
                                       Mã khách hàng
                                     </span>
                                     <span className="font-mono text-xs text-slate-600">
-                                      #{customer.userId}
+                                      #{customer.customerId}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="text-slate-500">
+                                      Số lượt ghé
+                                    </span>
+                                    <span className="text-slate-700">
+                                      {formatNumber(customer.totalVisits)}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="text-slate-500">
+                                      Xe đang hoạt động
+                                    </span>
+                                    <span className="text-slate-700">
+                                      {formatNumber(customer.activeVehicleCount)}
                                     </span>
                                   </div>
                                   <div className="flex items-center justify-between text-sm">
@@ -599,8 +633,8 @@ const AdminCustomers = () => {
                           </td>
                         </tr>
                       )}
-                    </>
-                  ))}
+                    </Fragment>
+                  );})}
                 </tbody>
               </table>
             </div>

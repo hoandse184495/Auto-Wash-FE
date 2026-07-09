@@ -1,8 +1,10 @@
-import React from "react";
-import { Outlet } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
 import AdminSidebar from "../components/admin/AdminSidebar";
 
 const AdminLayout: React.FC = () => {
+  const navigate = useNavigate();
+
   const getUserFromStorage = () => {
     try {
       const userStr = localStorage.getItem("user");
@@ -11,7 +13,18 @@ const AdminLayout: React.FC = () => {
     return null;
   };
 
-  const user = getUserFromStorage();
+  const [user, setUser] = useState(getUserFromStorage());
+
+  useEffect(() => {
+    const syncUser = () => setUser(getUserFromStorage());
+    window.addEventListener("user-updated", syncUser);
+    window.addEventListener("storage", syncUser);
+
+    return () => {
+      window.removeEventListener("user-updated", syncUser);
+      window.removeEventListener("storage", syncUser);
+    };
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-slate-100">
@@ -43,16 +56,21 @@ const AdminLayout: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="text-right">
                 <p className="text-sm font-semibold text-white">
-                  {user?.fullName || user?.username || "Admin"}
+                  {user?.fullName || user?.FullName || user?.username || "Admin"}
                 </p>
                 <p className="text-xs text-emerald-400">
                   ● Trực tuyến
                 </p>
               </div>
 
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center font-semibold shadow-lg">
-                {user?.fullName?.[0] || user?.username?.[0] || "A"}
-              </div>
+              <button
+                type="button"
+                onClick={() => navigate("/admin/profile")}
+                className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center font-semibold shadow-lg transition hover:scale-105"
+                title="Mở hồ sơ"
+              >
+                {user?.fullName?.[0] || user?.FullName?.[0] || user?.username?.[0] || "A"}
+              </button>
             </div>
           </div>
         </header>

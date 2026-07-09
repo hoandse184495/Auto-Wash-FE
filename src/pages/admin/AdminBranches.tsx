@@ -21,6 +21,7 @@ import branchService, {
   type CreateBranchPayload,
   type UpdateBranchPayload,
 } from "../../services/branchService";
+import revenueService from "../../services/revenueService";
 import userService, { type User } from "../../services/userService";
 import { getErrorMessage } from "../../api/axiosClient";
 
@@ -142,9 +143,34 @@ const AdminBranches = () => {
         };
       });
 
-      setBranches(enriched);
-      if (enriched.length > 0) {
-        setSelectedBranch(enriched[0]);
+      const performance = await revenueService.getBranchPerformance();
+      const performanceMap = new Map<number, {
+        todayBookings: number;
+        monthBookings: number;
+        monthlyRevenue: number;
+      }>();
+
+      performance.forEach((item) => {
+        performanceMap.set(item.branchID, {
+          todayBookings: item.todayBookings,
+          monthBookings: item.monthBookings,
+          monthlyRevenue: item.monthlyRevenue,
+        });
+      });
+
+      const enrichedWithPerformance = enriched.map((branch) => {
+        const perf = performanceMap.get(branch.branchID);
+        return {
+          ...branch,
+          todayBookings: perf?.todayBookings ?? 0,
+          monthBookings: perf?.monthBookings ?? 0,
+          revenue: perf?.monthlyRevenue ?? 0,
+        };
+      });
+
+      setBranches(enrichedWithPerformance);
+      if (enrichedWithPerformance.length > 0) {
+        setSelectedBranch(enrichedWithPerformance[0]);
       }
     } catch (err) {
       setError(getErrorMessage(err));

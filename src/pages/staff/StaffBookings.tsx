@@ -47,6 +47,14 @@ const statuses = [
   { value: "Completed", label: "Hoàn thành" },
 ];
 
+function getTodayInputValue() {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function priceOf(service: BranchServiceOption) {
   return service.ActualPrice ?? service.PriceOverride ?? service.BasePrice ?? 0;
 }
@@ -57,6 +65,7 @@ const StaffBookings = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [bookingDate, setBookingDate] = useState(getTodayInputValue());
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedItem, setSelectedItem] = useState<StaffFlatItem | null>(null);
   const [serviceOptions, setServiceOptions] = useState<BranchServiceOption[]>([]);
@@ -70,13 +79,13 @@ const StaffBookings = () => {
 
   useEffect(() => {
     loadBookings();
-  }, []);
+  }, [bookingDate]);
 
   async function loadBookings() {
     try {
       setIsLoading(true);
       setMessage("");
-      const bookings = await fetchTodayBookings();
+      const bookings = await fetchTodayBookings({ bookingDate });
       setItems(flattenStaffBookings(bookings));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Không tải được lịch hẹn");
@@ -257,6 +266,16 @@ const StaffBookings = () => {
       </div>
 
       <div className="flex flex-col gap-3 lg:flex-row">
+        <div className="relative">
+          <CalendarCheck size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="date"
+            value={bookingDate}
+            onChange={(event) => setBookingDate(event.target.value)}
+            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 lg:w-52"
+          />
+        </div>
+
         <div className="relative flex-1">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
