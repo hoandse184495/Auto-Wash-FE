@@ -5,6 +5,9 @@ import AboutPage from "../pages/AboutPage";
 
 import StaffLayout from "../layouts/StaffLayout";
 import StaffDashboard from "../pages/staff/StaffDashboard";
+import StaffBookings from "../pages/staff/StaffBookings";
+import StaffBays from "../pages/staff/StaffBays";
+import StaffHistory from "../pages/staff/StaffHistory";
 
 import ManagerLayout from "../layouts/ManagerLayout";
 import ManagerDashboard from "../pages/manager/ManagerDashboard";
@@ -126,6 +129,9 @@ const AppRoutes = () => {
           }
         >
           <Route index element={<StaffDashboard />} />
+          <Route path="bookings" element={<StaffBookings />} />
+          <Route path="bays" element={<StaffBays />} />
+          <Route path="history" element={<StaffHistory />} />
         </Route>
 
         {/* Manager */}
