@@ -31,20 +31,6 @@ const AdminStatistics = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const getDateRange = () => {
-    const end = new Date();
-    const start = new Date();
-
-    if (period === "week") start.setDate(end.getDate() - 7);
-    else if (period === "month") start.setMonth(end.getMonth() - 1);
-    else start.setFullYear(end.getFullYear() - 1);
-
-    return {
-      startDate: start.toISOString().split("T")[0],
-      endDate: end.toISOString().split("T")[0],
-    };
-  };
-
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -58,7 +44,6 @@ const AdminStatistics = () => {
 
         setBranches(branchList);
 
-        const { startDate, endDate } = getDateRange();
         const activeStaff = staffList.filter((staff) => staff.Status === "Active");
         const activeManagers = managerList.filter((manager) => manager.Status === "Active");
         const activeCustomers = customerList.filter((customer) => customer.status === "Active");

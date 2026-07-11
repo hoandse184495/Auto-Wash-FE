@@ -15,6 +15,7 @@ import {
   getServicesText,
   getStatusClass,
   getStatusLabel,
+  getTodayInputValue,
   updateBookingItemStatus,
 } from "./staffOperations";
 import type { StaffFlatItem } from "./staffOperations";
@@ -55,16 +56,17 @@ const StaffBays = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isUpdatingId, setIsUpdatingId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
+  const [bookingDate, setBookingDate] = useState(getTodayInputValue());
 
   useEffect(() => {
     loadItems();
-  }, []);
+  }, [bookingDate]);
 
   async function loadItems() {
     try {
       setIsLoading(true);
       setMessage("");
-      const bookings = await fetchTodayBookings();
+      const bookings = await fetchTodayBookings({ bookingDate });
       setItems(flattenStaffBookings(bookings));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Không tải được trạm rửa");
@@ -109,7 +111,14 @@ const StaffBays = () => {
           </p>
         </div>
 
-        <button
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <input
+            type="date"
+            value={bookingDate}
+            onChange={(event) => setBookingDate(event.target.value)}
+            className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+          />
+          <button
           type="button"
           onClick={loadItems}
           disabled={isLoading}
@@ -117,7 +126,8 @@ const StaffBays = () => {
         >
           <RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />
           Làm mới
-        </button>
+          </button>
+        </div>
       </div>
 
       {message && (
