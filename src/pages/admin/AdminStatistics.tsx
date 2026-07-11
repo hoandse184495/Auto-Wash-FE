@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  AlertCircle,
   BarChart3,
   Building2,
   DollarSign,
@@ -20,7 +21,7 @@ interface BranchStats {
 }
 
 const AdminStatistics = () => {
-  const [period, setPeriod] = useState<"week" | "month" | "year">("month");
+  const period = "month";
   const [branches, setBranches] = useState<Branch[]>([]);
   const [branchStats, setBranchStats] = useState<BranchStats[]>([]);
   const [totals, setTotals] = useState({
@@ -91,7 +92,7 @@ const AdminStatistics = () => {
     };
 
     fetchData();
-  }, [period]);
+  }, []);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("vi-VN", {
@@ -120,7 +121,7 @@ const AdminStatistics = () => {
           {(["week", "month", "year"] as const).map((item) => (
             <button
               key={item}
-              onClick={() => setPeriod(item)}
+              disabled={item !== "month"}
               className={`rounded-md px-4 py-1.5 text-sm font-medium transition ${
                 period === item ? "bg-rose-600 text-white shadow" : "text-slate-600 hover:bg-slate-50"
               }`}
@@ -128,6 +129,15 @@ const AdminStatistics = () => {
               {item === "week" ? "Tuần" : item === "month" ? "Tháng" : "Năm"}
             </button>
           ))}
+        </div>
+        <div className="inline-flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <AlertCircle size={18} className="mt-0.5 shrink-0" />
+          <div>
+            <p className="font-semibold">Dữ liệu theo tháng hiện tại</p>
+            <p className="mt-0.5 text-xs">
+              API hiện có chưa trả thống kê theo tuần/năm, nên các lựa chọn đó đang tạm khóa.
+            </p>
+          </div>
         </div>
       </div>
 

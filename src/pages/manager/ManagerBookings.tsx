@@ -78,6 +78,14 @@ function formatTime(value: string | null | undefined) {
   return text.substring(0, 5);
 }
 
+function getTodayInputValue() {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function mapStatus(status: string | undefined): BookingStatus {
   if (status === "Pending") {
     return "pending";
@@ -147,12 +155,13 @@ const ManagerBookings = () => {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [message, setMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [bookingDate, setBookingDate] = useState(getTodayInputValue());
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
     fetchBookings();
-  }, []);
+  }, [bookingDate]);
 
   async function fetchBookings() {
     try {
@@ -169,6 +178,7 @@ const ManagerBookings = () => {
       const response = await axiosClient.get(
         "/api/staff-operations/today-bookings",
         {
+          params: { bookingDate },
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -403,6 +413,19 @@ const ManagerBookings = () => {
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row">
+        <div className="relative">
+          <CalendarCheck
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            size={18}
+          />
+          <input
+            type="date"
+            value={bookingDate}
+            onChange={(e) => setBookingDate(e.target.value)}
+            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 sm:w-52"
+          />
+        </div>
+
         <div className="relative flex-1">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"

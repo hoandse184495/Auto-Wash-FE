@@ -8,6 +8,7 @@ import {
   Clock3,
   MapPin,
   RefreshCcw,
+  Search,
   XCircle,
 } from "lucide-react";
 import Navbar from "../../components/Navbar";
@@ -91,6 +92,9 @@ function MyBookings() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [cancellingId, setCancellingId] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
 
   const loadBookings = useCallback(async () => {
     try {
@@ -130,6 +134,39 @@ function MyBookings() {
       setCancellingId(null);
     }
   }
+
+  const filteredBookings = bookings
+    .filter((booking) => {
+      const keyword = searchTerm.trim().toLowerCase();
+      const matchesSearch =
+        !keyword ||
+        (booking.BookingCode || `#${booking.BookingGroupID}`).toLowerCase().includes(keyword) ||
+        (booking.branches?.BranchName || "").toLowerCase().includes(keyword) ||
+        (booking.branches?.Address || "").toLowerCase().includes(keyword) ||
+        (booking.BookingItems || []).some((item) => {
+          const vehicleText = [
+            item.Vehicles?.LicensePlate,
+            item.Vehicles?.Brand,
+            item.Vehicles?.Model,
+            ...(item.ServiceLineItems || []).map((line) => line.Services?.ServiceName),
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+
+          return vehicleText.includes(keyword);
+        });
+
+      const matchesStatus =
+        statusFilter === "all" || (booking.Status || "Pending") === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      const aTime = new Date(a.BookingDate || a.CreatedAt || 0).getTime();
+      const bTime = new Date(b.BookingDate || b.CreatedAt || 0).getTime();
+      return sortOrder === "newest" ? bTime - aTime : aTime - bTime;
+    });
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -206,8 +243,50 @@ function MyBookings() {
           )}
 
           {!loading && bookings.length > 0 && (
+            <>
+            <div className="mb-6 grid gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:grid-cols-[1fr_180px_180px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Tìm mã lịch, chi nhánh, biển số, dịch vụ..."
+                  className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+                />
+              </div>
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+              >
+                <option value="all">Tất cả trạng thái</option>
+                <option value="Pending">Đang chờ</option>
+                <option value="Confirmed">Đã xác nhận</option>
+                <option value="Completed">Hoàn thành</option>
+                <option value="Cancelled">Đã hủy</option>
+              </select>
+              <select
+                value={sortOrder}
+                onChange={(event) => setSortOrder(event.target.value as "newest" | "oldest")}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+              >
+                <option value="newest">Mới nhất</option>
+                <option value="oldest">Cũ nhất</option>
+              </select>
+            </div>
+
+            <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              Thanh toán online và xem lại hóa đơn đang chờ backend bổ sung API giao dịch/hóa đơn cho khách hàng.
+              Hiện tại bạn vẫn có thể theo dõi trạng thái lịch hẹn và hủy lịch khi còn cho phép.
+            </div>
+
+            {filteredBookings.length === 0 ? (
+              <div className="rounded-lg border border-slate-200 bg-white p-10 text-center text-slate-600 shadow-sm">
+                Không tìm thấy lịch hẹn phù hợp.
+              </div>
+            ) : (
             <div className="grid gap-5">
-              {bookings.map((booking) => {
+              {filteredBookings.map((booking) => {
                 const canCancel = booking.Status === "Pending" || booking.Status === "Confirmed";
                 const bookingTotal = getBookingTotal(booking);
 
@@ -305,6 +384,8 @@ function MyBookings() {
                 );
               })}
             </div>
+            )}
+            </>
           )}
         </section>
       </main>
