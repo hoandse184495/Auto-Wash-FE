@@ -11,6 +11,7 @@ import {
 import { Link } from "react-router-dom";
 import StatCard from "../../components/staff/StatCard";
 import axiosClient, { getErrorMessage } from "../../api/axiosClient";
+import { getTodayInputValue } from "./staffOperations";
 
 type ServiceLineItem = {
   Services?: {
@@ -169,6 +170,7 @@ const StaffDashboard = () => {
   const [bookings, setBookings] = useState<StaffBooking[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [bookingDate, setBookingDate] = useState(getTodayInputValue());
   const [staffName, setStaffName] = useState("Nhân viên");
 
   const [stats, setStats] = useState({
@@ -183,7 +185,7 @@ const StaffDashboard = () => {
     setStaffName(user?.fullName || user?.FullName || user?.email || "Nhân viên");
 
     fetchDashboardData();
-  }, []);
+  }, [bookingDate]);
 
   async function fetchDashboardData() {
     try {
@@ -198,6 +200,7 @@ const StaffDashboard = () => {
       }
 
       const res = await axiosClient.get("/api/staff-operations/today-bookings", {
+        params: { bookingDate },
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -351,8 +354,15 @@ const StaffDashboard = () => {
 
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Booking hôm nay</h2>
+          <h2 className="text-lg font-semibold">Booking theo ngày</h2>
 
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <input
+              type="date"
+              value={bookingDate}
+              onChange={(event) => setBookingDate(event.target.value)}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+            />
           <button
             onClick={fetchDashboardData}
             disabled={isLoading}
@@ -361,6 +371,7 @@ const StaffDashboard = () => {
             <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} />
             Làm mới
           </button>
+          </div>
         </div>
 
         {message && (

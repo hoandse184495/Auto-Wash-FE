@@ -14,6 +14,7 @@ import {
   formatDate,
   formatTime,
   getServicesText,
+  getTodayInputValue,
 } from "./staffOperations";
 import type { StaffFlatItem } from "./staffOperations";
 
@@ -22,16 +23,17 @@ const StaffHistory = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [bookingDate, setBookingDate] = useState(getTodayInputValue());
 
   useEffect(() => {
     loadHistory();
-  }, []);
+  }, [bookingDate]);
 
   async function loadHistory() {
     try {
       setIsLoading(true);
       setMessage("");
-      const bookings = await fetchTodayBookings({ status: "Completed" });
+      const bookings = await fetchTodayBookings({ status: "Completed", bookingDate });
       setItems(flattenStaffBookings(bookings));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Không tải được lịch sử ca rửa");
@@ -71,7 +73,14 @@ const StaffHistory = () => {
           </p>
         </div>
 
-        <button
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <input
+            type="date"
+            value={bookingDate}
+            onChange={(event) => setBookingDate(event.target.value)}
+            className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+          />
+          <button
           type="button"
           onClick={loadHistory}
           disabled={isLoading}
@@ -79,7 +88,8 @@ const StaffHistory = () => {
         >
           <RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />
           Làm mới
-        </button>
+          </button>
+        </div>
       </div>
 
       {message && (
@@ -107,7 +117,7 @@ const StaffHistory = () => {
             </div>
             <div>
               <p className="text-lg font-bold text-slate-800">
-                {formatDate(new Date().toISOString())}
+                {formatDate(bookingDate)}
               </p>
               <p className="text-xs text-slate-500">Ngày làm việc</p>
             </div>

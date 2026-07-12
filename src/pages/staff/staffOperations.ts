@@ -128,6 +128,14 @@ export function formatDate(value: string | null | undefined) {
   return new Date(value).toLocaleDateString("vi-VN");
 }
 
+export function getTodayInputValue() {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export function formatMoney(value: number | string | null | undefined) {
   const amount = Number(value || 0);
   return amount.toLocaleString("vi-VN");

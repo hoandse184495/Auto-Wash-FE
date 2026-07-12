@@ -7,6 +7,7 @@ import {
   Users as UsersIcon,
   Crown,
   DollarSign,
+  ReceiptText,
 } from "lucide-react";
 
 export const adminMenu = [
@@ -19,6 +20,11 @@ export const adminMenu = [
     path: "/admin/revenue",
     name: "Doanh thu",
     icon: <DollarSign size={20} />,
+  },
+  {
+    path: "/admin/transactions",
+    name: "Giao dịch & Hóa đơn",
+    icon: <ReceiptText size={20} />,
   },
   {
     path: "/admin/managers",

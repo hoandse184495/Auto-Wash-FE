@@ -4,6 +4,7 @@ import {
   CalendarCheck,
   BarChart3,
   Building2,
+  ReceiptText,
 } from "lucide-react";
 
 export const managerMenu = [
@@ -21,6 +22,11 @@ export const managerMenu = [
     path: "/manager/bookings",
     name: "Quản lý Đặt lịch",
     icon: <CalendarCheck size={20} />,
+  },
+  {
+    path: "/manager/transactions",
+    name: "Giao dịch & Hóa đơn",
+    icon: <ReceiptText size={20} />,
   },
   {
     path: "/manager/statistics",

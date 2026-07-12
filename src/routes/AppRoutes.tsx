@@ -13,6 +13,7 @@ import ManagerLayout from "../layouts/ManagerLayout";
 import ManagerDashboard from "../pages/manager/ManagerDashboard";
 import ManagerStaffManagement from "../pages/manager/ManagerStaffManagement";
 import ManagerBookings from "../pages/manager/ManagerBookings";
+import ManagerTransactions from "../pages/manager/ManagerTransactions";
 import ManagerStatistics from "../pages/manager/ManagerStatistics";
 import ManagerBranchInfo from "../pages/manager/ManagerBranchInfo";
 
@@ -26,6 +27,7 @@ import AdminStatistics from "../pages/admin/AdminStatistics";
 import AdminCustomers from "../pages/admin/AdminCustomers";
 import AdminTierConfig from "../pages/admin/AdminTierConfig";
 import AdminRevenue from "../pages/admin/AdminRevenue";
+import AdminTransactions from "../pages/admin/AdminTransactions";
 
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
@@ -147,6 +149,7 @@ const AppRoutes = () => {
           <Route index element={<ManagerDashboard />} />
           <Route path="staff" element={<ManagerStaffManagement />} />
           <Route path="bookings" element={<ManagerBookings />} />
+          <Route path="transactions" element={<ManagerTransactions />} />
           <Route path="statistics" element={<ManagerStatistics />} />
           <Route path="branch" element={<ManagerBranchInfo />} />
         </Route>
@@ -169,6 +172,7 @@ const AppRoutes = () => {
           <Route path="customers" element={<AdminCustomers />} />
           <Route path="tier-configs" element={<AdminTierConfig />} />
           <Route path="revenue" element={<AdminRevenue />} />
+          <Route path="transactions" element={<AdminTransactions />} />
         </Route>
 
         {/* Customer cần đăng nhập */}
