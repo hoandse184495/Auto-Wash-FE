@@ -5,6 +5,9 @@ import {
   BarChart3,
   Building2,
   ReceiptText,
+  Tags,
+  Settings2,
+  CalendarClock,
 } from "lucide-react";
 
 export const managerMenu = [
@@ -22,6 +25,21 @@ export const managerMenu = [
     path: "/manager/bookings",
     name: "Quản lý Đặt lịch",
     icon: <CalendarCheck size={20} />,
+  },
+  {
+    path: "/manager/promotions",
+    name: "Khuyến mãi",
+    icon: <Tags size={20} />,
+  },
+  {
+    path: "/manager/branch-operations",
+    name: "Dịch vụ & Cấu hình",
+    icon: <Settings2 size={20} />,
+  },
+  {
+    path: "/manager/workforce",
+    name: "Ca làm & Phân lịch",
+    icon: <CalendarClock size={20} />,
   },
   {
     path: "/manager/transactions",
