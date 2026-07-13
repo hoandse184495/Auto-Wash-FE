@@ -76,7 +76,7 @@ function BookingSuccess() {
                             <div className="flex justify-between gap-4">
                                 <span className="text-slate-500">Trạng thái</span>
                                 <span className="font-semibold text-orange-600">
-                                    Chờ xác nhận
+                                    Chờ xử lý
                                 </span>
                             </div>
 

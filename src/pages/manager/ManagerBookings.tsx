@@ -318,7 +318,7 @@ const ManagerBookings = () => {
       pending: {
         bg: "bg-amber-100",
         text: "text-amber-700",
-        label: "Chờ xác nhận",
+        label: "Chờ xử lý",
       },
       checked_in: {
         bg: "bg-blue-100",
@@ -409,7 +409,7 @@ const ManagerBookings = () => {
               <p className="text-2xl font-bold text-amber-700">
                 {stats.pending}
               </p>
-              <p className="text-xs text-amber-600">Chờ xác nhận</p>
+              <p className="text-xs text-amber-600">Chờ xử lý</p>
             </div>
           </div>
         </div>
@@ -505,7 +505,7 @@ const ManagerBookings = () => {
             className="appearance-none rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
           >
             <option value="all">Tất cả trạng thái</option>
-            <option value="pending">Chờ xác nhận</option>
+            <option value="pending">Chờ xử lý</option>
             <option value="checked_in">Đã check-in</option>
             <option value="in_progress">Đang rửa</option>
             <option value="completed">Hoàn thành</option>

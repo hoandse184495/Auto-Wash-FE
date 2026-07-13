@@ -27,7 +27,7 @@ export const adminMenu = [
   },
   {
     path: "/admin/transactions",
-    name: "Giao dịch & Hóa đơn",
+    name: "Giao dịch",
     icon: <ReceiptText size={20} />,
   },
   {
