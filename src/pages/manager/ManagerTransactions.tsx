@@ -48,6 +48,23 @@ function getItemServiceTotal(item: StaffBookingItem) {
   }, 0);
 }
 
+function getBookingDiscountTotal(booking: StaffBooking) {
+  return (booking.TransactionDiscounts || [])
+    .filter((discount) => discount.DiscountType === "POINT_REQUEST")
+    .reduce((sum, discount) => sum + toNumber(discount.DiscountAmount), 0);
+}
+
+function getBookingFinalTotal(booking: StaffBooking, serviceTotal: number) {
+  const latestTransaction = booking.Transactions?.[0];
+
+  if (latestTransaction?.FinalAmount !== undefined && latestTransaction?.FinalAmount !== null) {
+    return toNumber(latestTransaction.FinalAmount);
+  }
+
+  const requestedDiscount = Math.min(serviceTotal, Math.max(0, getBookingDiscountTotal(booking)));
+  return Math.max(0, serviceTotal - requestedDiscount);
+}
+
 function ManagerTransactions() {
   const [bookings, setBookings] = useState<StaffBooking[]>([]);
   const [bookingDate, setBookingDate] = useState(getTodayInputValue());
@@ -85,7 +102,8 @@ function ManagerTransactions() {
         return [];
       }
 
-      const bookingTotal = completedItems.reduce((sum, item) => sum + getItemServiceTotal(item), 0);
+      const serviceTotal = completedItems.reduce((sum, item) => sum + getItemServiceTotal(item), 0);
+      const bookingTotal = getBookingFinalTotal(booking, serviceTotal);
       const serviceName = completedItems
         .flatMap((item) => (item.ServiceLineItems || []).map((line) => line.Services?.ServiceName).filter(Boolean))
         .join(", ") || "Chưa có dịch vụ";

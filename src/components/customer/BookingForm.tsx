@@ -25,10 +25,10 @@ type BookingFormProps = {
   setPhone: Dispatch<SetStateAction<string>>;
   branchId: string;
   setBranchId: Dispatch<SetStateAction<string>>;
-  vehicleId: string;
-  setVehicleId: Dispatch<SetStateAction<string>>;
-  serviceId: string;
-  setServiceId: Dispatch<SetStateAction<string>>;
+  vehicleIds: string[];
+  setVehicleIds: Dispatch<SetStateAction<string[]>>;
+  vehicleServiceIds: Record<string, string>;
+  setVehicleServiceIds: Dispatch<SetStateAction<Record<string, string>>>;
   bookingDate: string;
   setBookingDate: Dispatch<SetStateAction<string>>;
   startTime: string;
@@ -48,8 +48,8 @@ type BookingFormProps = {
   loadingSlots: boolean;
   isSubmitting: boolean;
   selectedBranch?: Branch;
-  selectedVehicle?: Vehicle;
-  selectedService?: Service;
+  selectedVehicles: Vehicle[];
+  selectedVehicleServices: { vehicle: Vehicle; service?: Service }[];
   onSubmit: FormEventHandler<HTMLFormElement>;
 };
 
@@ -61,10 +61,10 @@ const BookingForm = ({
   setPhone,
   branchId,
   setBranchId,
-  vehicleId,
-  setVehicleId,
-  serviceId,
-  setServiceId,
+  vehicleIds,
+  setVehicleIds,
+  vehicleServiceIds,
+  setVehicleServiceIds,
   bookingDate,
   setBookingDate,
   startTime,
@@ -84,10 +84,32 @@ const BookingForm = ({
   loadingSlots,
   isSubmitting,
   selectedBranch,
-  selectedVehicle,
-  selectedService,
+  selectedVehicles,
+  selectedVehicleServices,
   onSubmit,
 }: BookingFormProps) => {
+  const selectedVehicleCount = selectedVehicles.length;
+  const toggleVehicle = (id: number) => {
+    const value = String(id);
+    setVehicleIds((current) => {
+      if (!current.includes(value)) return [...current, value];
+      setVehicleServiceIds((servicesByVehicle) => {
+        const next = { ...servicesByVehicle };
+        delete next[value];
+        return next;
+      });
+      return current.filter((item) => item !== value);
+    });
+    setStartTime("");
+  };
+
+  const setVehicleService = (vehicleId: number, serviceId: string) => {
+    setVehicleServiceIds((current) => ({
+      ...current,
+      [String(vehicleId)]: serviceId,
+    }));
+  };
+
   return (
     <form
       onSubmit={onSubmit}
@@ -166,7 +188,7 @@ const BookingForm = ({
             value={branchId}
             onChange={(e) => {
               setBranchId(e.target.value);
-              setServiceId("");
+              setVehicleServiceIds({});
               setBookingDate("");
               setStartTime("");
               setSlots([]);
@@ -188,20 +210,48 @@ const BookingForm = ({
             Xe <span className="text-red-500">*</span>
           </label>
 
-          <select
-            value={vehicleId}
-            onChange={(e) => setVehicleId(e.target.value)}
-            className={inputClass}
-          >
-            <option value="">Chọn xe</option>
+          <div className="max-h-52 overflow-y-auto rounded-lg border border-slate-300 bg-white p-2">
+            {vehicles.length === 0 ? (
+              <p className="px-3 py-2 text-sm text-slate-500">
+                Bạn chưa có xe nào. Vui lòng đăng ký xe mới.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {vehicles.map((vehicle) => {
+                  const checked = vehicleIds.includes(String(vehicle.VehicleID));
+                  return (
+                    <label
+                      key={vehicle.VehicleID}
+                      className={`flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2 text-sm transition ${
+                        checked
+                          ? "border-sky-500 bg-sky-50"
+                          : "border-slate-200 hover:border-sky-300"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleVehicle(vehicle.VehicleID)}
+                        className="mt-1 h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                      />
+                      <span>
+                        <span className="block font-semibold text-slate-800">
+                          {vehicle.LicensePlate}
+                        </span>
+                        <span className="block text-xs text-slate-500">
+                          {vehicle.Brand || "Chưa cập nhật"} {vehicle.Model || ""}
+                        </span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
-            {vehicles.map((vehicle) => (
-              <option key={vehicle.VehicleID} value={vehicle.VehicleID}>
-                {vehicle.LicensePlate} - {vehicle.Brand || "Chưa cập nhật"}{" "}
-                {vehicle.Model || ""}
-              </option>
-            ))}
-          </select>
+          <p className="mt-2 text-xs text-slate-500">
+            Đã chọn {selectedVehicleCount} xe. Khung giờ phải còn đủ chỗ cho số xe đã chọn.
+          </p>
         </div>
 
         <div>
@@ -221,35 +271,56 @@ const BookingForm = ({
           />
         </div>
 
-        <div>
+        <div className="md:col-span-2">
           <label className="mb-2 block text-sm font-bold text-slate-700">
-            Dịch vụ <span className="text-red-500">*</span>
+            Dịch vụ theo từng xe <span className="text-red-500">*</span>
           </label>
 
-          <select
-            value={serviceId}
-            disabled={!branchId || loadingServices}
-            onChange={(e) => setServiceId(e.target.value)}
-            className={inputClass}
-          >
-            <option value="">
-              {!branchId
-                ? "Chọn chi nhánh trước"
-                : loadingServices
-                  ? "Đang tải dịch vụ..."
-                  : "Chọn dịch vụ"}
-            </option>
-
-            {services.map((service) => (
-              <option key={service.ServiceID} value={service.ServiceID}>
-                {service.ServiceName} - {formatMoney(service.ActualPrice)}
-              </option>
-            ))}
-          </select>
+          {selectedVehicles.length === 0 ? (
+            <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+              Chọn xe trước để chọn dịch vụ.
+            </p>
+          ) : !branchId ? (
+            <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+              Chọn chi nhánh trước để tải dịch vụ.
+            </p>
+          ) : loadingServices ? (
+            <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+              Đang tải dịch vụ...
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {selectedVehicles.map((vehicle) => (
+                <div
+                  key={vehicle.VehicleID}
+                  className="grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] md:items-center"
+                >
+                  <div>
+                    <p className="font-semibold text-slate-800">{vehicle.LicensePlate}</p>
+                    <p className="text-xs text-slate-500">
+                      {vehicle.Brand || "Chưa cập nhật"} {vehicle.Model || ""}
+                    </p>
+                  </div>
+                  <select
+                    value={vehicleServiceIds[String(vehicle.VehicleID)] || ""}
+                    onChange={(event) => setVehicleService(vehicle.VehicleID, event.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">Chọn dịch vụ cho xe này</option>
+                    {services.map((service) => (
+                      <option key={service.ServiceID} value={service.ServiceID}>
+                        {service.ServiceName} - {formatMoney(service.ActualPrice)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {(selectedBranch || selectedVehicle || selectedService) && (
+      {(selectedBranch || selectedVehicles.length > 0 || selectedVehicleServices.some((item) => item.service)) && (
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
           {selectedBranch && (
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
@@ -272,43 +343,46 @@ const BookingForm = ({
             </div>
           )}
 
-          {selectedVehicle && (
+          {selectedVehicles.length > 0 && (
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-              <p className="font-bold text-slate-950">Xe đã chọn</p>
-              <p className="mt-3 flex gap-2">
-                <Car className="h-4 w-4 shrink-0 text-sky-600" />
-                <span className="font-semibold text-slate-800">
-                  {selectedVehicle.LicensePlate}
-                </span>
+              <p className="font-bold text-slate-950">
+                Xe đã chọn ({selectedVehicleCount})
               </p>
-              <p className="mt-2">
-                Loại xe: {selectedVehicle.VehicleType || "Chưa cập nhật"}
-              </p>
-              <p className="mt-2">
-                Hãng / model: {selectedVehicle.Brand || "Chưa cập nhật"}{" "}
-                {selectedVehicle.Model || ""}
-              </p>
-              <p className="mt-2">
-                Màu xe: {selectedVehicle.Color || "Chưa cập nhật"}
-              </p>
+              <div className="mt-3 space-y-2">
+                {selectedVehicles.map((vehicle) => (
+                  <div key={vehicle.VehicleID} className="flex gap-2">
+                    <Car className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" />
+                    <span>
+                      <span className="font-semibold text-slate-800">
+                        {vehicle.LicensePlate}
+                      </span>
+                      <span className="block text-xs text-slate-500">
+                        {vehicle.Brand || "Chưa cập nhật"} {vehicle.Model || ""}
+                      </span>
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          {selectedService && (
+          {selectedVehicleServices.some((item) => item.service) && (
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
               <p className="font-bold text-slate-950">Dịch vụ đã chọn</p>
-              <p className="mt-3 font-semibold text-slate-800">
-                {selectedService.ServiceName}
-              </p>
-              <p className="mt-2 leading-6">
-                {selectedService.Description || "Chưa có mô tả"}
-              </p>
-              <p className="mt-2">
-                Thời lượng: {selectedService.DurationMinutes || 0} phút
-              </p>
-              <p className="mt-2 font-bold text-sky-700">
-                {formatMoney(selectedService.ActualPrice)}
-              </p>
+              <div className="mt-3 space-y-2">
+                {selectedVehicleServices.map(({ vehicle, service }) => (
+                  <div key={vehicle.VehicleID}>
+                    <p className="font-semibold text-slate-800">
+                      {vehicle.LicensePlate}: {service?.ServiceName || "Chưa chọn dịch vụ"}
+                    </p>
+                    {service && (
+                      <p className="text-xs text-slate-500">
+                        {formatMoney(service.ActualPrice)} | {service.DurationMinutes || 0} phút
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -335,8 +409,9 @@ const BookingForm = ({
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {slots.map((slot) => {
               const isSelected = startTime === slot.StartTime;
+              const lacksCapacity = selectedVehicleCount > 0 && slot.Available < selectedVehicleCount;
               const isDisabled =
-                slot.Available <= 0 || slot.Status !== "Available";
+                slot.Available <= 0 || slot.Status !== "Available" || lacksCapacity;
               const isFull = slot.Available <= 0 || slot.Status !== "Available";
 
               return (
@@ -362,7 +437,12 @@ const BookingForm = ({
                       isSelected ? "text-sky-50" : "text-slate-500"
                     }`}
                   >
-                    {slot.ShiftName} | {slot.StaffCount} nhân viên | {isFull ? "Hết chỗ" : `Còn ${slot.Available} chỗ`}
+                    {slot.ShiftName} | {slot.StaffCount} nhân viên |{" "}
+                    {isFull
+                      ? "Hết chỗ"
+                      : lacksCapacity
+                        ? `Không đủ cho ${selectedVehicleCount} xe`
+                        : `Còn ${slot.Available} chỗ`}
                   </div>
                 </button>
               );

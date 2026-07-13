@@ -159,7 +159,7 @@ const operationsService = {
     await axiosClient.delete(`/api/shifts/${id}`, { headers: headers() });
   },
 
-  async getSchedules(params: { UserID?: number; ShiftID?: number; from?: string; to?: string; Status?: RecordStatus } = {}) {
+  async getSchedules(params: { UserID?: number; ShiftID?: number; BranchID?: number; from?: string; to?: string; Status?: RecordStatus } = {}) {
     return dataOf<StaffSchedule[]>(await axiosClient.get("/api/staff-schedules", { params, headers: headers() }));
   },
   async createSchedule(payload: { UserID: number; WorkDate: string; ShiftID: number; CapacityWeight: number }) {

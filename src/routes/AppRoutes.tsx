@@ -157,9 +157,6 @@ const AppRoutes = () => {
           <Route path="transactions" element={<ManagerTransactions />} />
           <Route path="statistics" element={<ManagerStatistics />} />
           <Route path="branch" element={<ManagerBranchInfo />} />
-          <Route path="promotions" element={<PromotionManagement />} />
-          <Route path="branch-operations" element={<BranchOperations />} />
-          <Route path="workforce" element={<WorkforceManagement />} />
         </Route>
 
         {/* Admin */}

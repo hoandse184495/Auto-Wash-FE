@@ -109,11 +109,41 @@ function BookingSuccess() {
                             </div>
 
                             <div className="flex justify-between gap-4">
+                                <span className="text-slate-500">Số lượng xe</span>
+                                <span className="text-right font-semibold text-slate-800">
+                                    {summary.vehicleCount || 1}
+                                </span>
+                            </div>
+
+                            <div className="flex justify-between gap-4">
                                 <span className="text-slate-500">Dịch vụ</span>
                                 <span className="text-right font-semibold text-slate-800">
                                     {summary.serviceName}
                                 </span>
                             </div>
+
+                            {Array.isArray(summary.vehicleServiceSummary) && (
+                                <div className="rounded-lg bg-white/70 p-3">
+                                    <p className="font-semibold text-slate-700">Dịch vụ từng xe</p>
+                                    <div className="mt-2 space-y-2">
+                                        {summary.vehicleServiceSummary.map(
+                                            (
+                                                item: { vehicleName: string; serviceName: string; price: number },
+                                                index: number,
+                                            ) => (
+                                                <div key={`${item.vehicleName}-${index}`} className="flex justify-between gap-4">
+                                                    <span className="text-slate-500">
+                                                        {item.vehicleName} - {item.serviceName}
+                                                    </span>
+                                                    <span className="font-semibold text-slate-800">
+                                                        {formatMoney(item.price)}
+                                                    </span>
+                                                </div>
+                                            ),
+                                        )}
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="flex justify-between gap-4">
                                 <span className="text-slate-500">Thời lượng</span>

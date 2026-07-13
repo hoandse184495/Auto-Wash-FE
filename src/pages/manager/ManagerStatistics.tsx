@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Download, WalletCards, Coins, Banknote, CreditCard, TrendingUp } from "lucide-react";
+import { CalendarDays, WalletCards, Coins, Banknote, CreditCard, TrendingUp } from "lucide-react";
 import revenueService, { type CashflowResponse, type DailyCashflowItem } from "../../services/revenueService";
 
 const PERIOD_OPTIONS = [
@@ -12,15 +12,24 @@ type Period = (typeof PERIOD_OPTIONS)[number]["value"];
 
 function getPeriodRange(period: Period) {
   const today = new Date();
-  const endDate = new Date(today);
-  const startDate = new Date(today);
+  let startDate: Date;
+  let endDate: Date;
 
   if (period === "week") {
-    startDate.setDate(today.getDate() - 6);
+    const dayOfWeek = today.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+
+    startDate = new Date(today);
+    startDate.setDate(today.getDate() + mondayOffset);
+
+    endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
   } else if (period === "month") {
-    startDate.setMonth(today.getMonth() - 1);
+    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
   } else {
-    startDate.setFullYear(today.getFullYear() - 1);
+    startDate = new Date(today.getFullYear(), 0, 1);
+    endDate = new Date(today.getFullYear(), 11, 31);
   }
 
   const toIsoDate = (value: Date) => value.toISOString().slice(0, 10);
@@ -166,10 +175,6 @@ const ManagerStatistics = () => {
               <h2 className="text-lg font-semibold text-slate-800">Doanh thu theo ngày</h2>
               <p className="text-sm text-slate-500">Danh sách thay cho biểu đồ lịch hẹn, dễ đọc hơn trên màn quản lý.</p>
             </div>
-            <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
-              <Download size={16} />
-              Xuất file
-            </button>
           </div>
 
           {message && (

@@ -8,6 +8,7 @@ type BookingSummaryProps = {
   bookingDate: string;
   startTime: string;
   servicePrice: number;
+  selectedVehicleCount: number;
   tierDiscountPercent: number;
   tierDiscountAmount: number;
   usedPoints: number;
@@ -15,8 +16,8 @@ type BookingSummaryProps = {
   discountAmount: number;
   finalPrice: number;
   selectedBranch?: Branch;
-  selectedVehicle?: Vehicle;
-  selectedService?: Service;
+  selectedVehicles: Vehicle[];
+  selectedVehicleServices: { vehicle: Vehicle; service?: Service }[];
 };
 
 const BookingSummary = ({
@@ -25,6 +26,7 @@ const BookingSummary = ({
   bookingDate,
   startTime,
   servicePrice,
+  selectedVehicleCount,
   tierDiscountPercent,
   tierDiscountAmount,
   usedPoints,
@@ -32,15 +34,20 @@ const BookingSummary = ({
   discountAmount,
   finalPrice,
   selectedBranch,
-  selectedVehicle,
-  selectedService,
+  selectedVehicles,
+  selectedVehicleServices,
 }: BookingSummaryProps) => {
   const rows = [
     ["Khách hàng", fullName || "Chưa nhập"],
     ["Số điện thoại", phone || "Chưa nhập"],
     ["Chi nhánh", selectedBranch?.BranchName || "Chưa chọn"],
-    ["Xe", selectedVehicle?.LicensePlate || "Chưa chọn"],
-    ["Dịch vụ", selectedService?.ServiceName || "Chưa chọn"],
+    [
+      "Xe",
+      selectedVehicles.length > 0
+        ? selectedVehicles.map((vehicle) => vehicle.LicensePlate).join(", ")
+        : "Chưa chọn",
+    ],
+    ["Số lượng xe", selectedVehicleCount ? String(selectedVehicleCount) : "Chưa chọn"],
     [
       "Ngày giờ",
       `${bookingDate || "Chưa chọn"}${startTime ? ` lúc ${startTime}` : ""}`,
@@ -72,6 +79,20 @@ const BookingSummary = ({
 
           <div className="border-t border-slate-200 pt-5">
             <p className="text-slate-500">Thanh toán dự kiến</p>
+            {selectedVehicleServices.length > 0 && (
+              <div className="mt-2 space-y-2 text-sm">
+                {selectedVehicleServices.map(({ vehicle, service }) => (
+                  <div key={vehicle.VehicleID} className="flex justify-between gap-3">
+                    <span className="text-slate-500">
+                      {vehicle.LicensePlate} - {service?.ServiceName || "Chưa chọn"}
+                    </span>
+                    <span className="font-semibold text-slate-800">
+                      {formatMoney(Number(service?.ActualPrice || 0))}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
             <p className="mt-1 text-xl font-bold text-slate-700 line-through">
               {formatMoney(servicePrice)}
             </p>

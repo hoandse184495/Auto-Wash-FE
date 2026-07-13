@@ -44,7 +44,15 @@ export type StaffBooking = {
     };
   };
   Transactions?: {
+    Subtotal?: number | string | null;
+    DiscountAmount?: number | string | null;
+    FinalAmount?: number | string | null;
     Status?: string | null;
+    CreatedAt?: string | null;
+  }[];
+  TransactionDiscounts?: {
+    DiscountType?: string | null;
+    DiscountAmount?: number | string | null;
   }[];
   BookingItems?: StaffBookingItem[];
 };

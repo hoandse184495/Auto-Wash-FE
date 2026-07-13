@@ -193,7 +193,7 @@ function AdminTransactions() {
             <option value="Cancelled">Đã hủy</option>
           </select>
           <label className="relative">
-            <span className="absolute -top-2 left-2 bg-white px-1 text-[10px] font-semibold uppercase text-slate-500">Từ ngày</span>
+            <span className="absolute -top-2 left-2 bg-white px-1 text-[10px] font-semibold uppercase text-slate-500">TT từ ngày</span>
             <input
               type="date"
               value={from}
@@ -202,7 +202,7 @@ function AdminTransactions() {
             />
           </label>
           <label className="relative">
-            <span className="absolute -top-2 left-2 bg-white px-1 text-[10px] font-semibold uppercase text-slate-500">Đến ngày</span>
+            <span className="absolute -top-2 left-2 bg-white px-1 text-[10px] font-semibold uppercase text-slate-500">TT đến ngày</span>
             <input
               type="date"
               value={to}

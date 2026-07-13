@@ -78,7 +78,7 @@ const ManagerBranchInfo = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [branchServices, setBranchServices] = useState<BranchServiceAssignment[]>([]);
-  const [serviceCatalog, setServiceCatalog] = useState<ServiceCatalogItem[]>([]);
+  const [serviceCatalog] = useState<ServiceCatalogItem[]>([]);
   const [serviceSearch, setServiceSearch] = useState("");
   const [isServiceLoading, setIsServiceLoading] = useState(false);
   const [isServiceSaving, setIsServiceSaving] = useState(false);
@@ -98,13 +98,6 @@ const ManagerBranchInfo = () => {
   useEffect(() => {
     fetchData();
   }, []);
-
-  useEffect(() => {
-    if (branchId) {
-      fetchBranchServices();
-      fetchServiceCatalog();
-    }
-  }, [branchId]);
 
   const fetchData = async () => {
     if (!branchId) {
@@ -175,15 +168,6 @@ const ManagerBranchInfo = () => {
       setServiceError(getErrorMessage(err));
     } finally {
       setIsServiceLoading(false);
-    }
-  };
-
-  const fetchServiceCatalog = async () => {
-    try {
-      const list = await branchServiceAssignmentService.getServiceCatalog();
-      setServiceCatalog(list);
-    } catch (err) {
-      setServiceError(getErrorMessage(err));
     }
   };
 
@@ -382,7 +366,6 @@ const ManagerBranchInfo = () => {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-slate-800">Thông tin chi nhánh</h2>
-              <p className="text-sm text-slate-500">Dữ liệu chỉ xem, manager không có quyền chỉnh sửa phần này</p>
             </div>
           </div>
         </div>
@@ -404,7 +387,7 @@ const ManagerBranchInfo = () => {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-slate-800">Cấu hình dịch vụ</h2>
-              <p className="text-sm text-slate-500">Chế độ xem mặc định là dữ liệu cứng</p>
+             
             </div>
           </div>
 
@@ -478,6 +461,8 @@ const ManagerBranchInfo = () => {
 
       </section>
 
+      {false && (
+      <>
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
@@ -698,6 +683,8 @@ const ManagerBranchInfo = () => {
             </form>
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   );

@@ -24,8 +24,8 @@ function Booking() {
   const [slots, setSlots] = useState<Slot[]>([]);
 
   const [branchId, setBranchId] = useState("");
-  const [vehicleId, setVehicleId] = useState("");
-  const [serviceId, setServiceId] = useState("");
+  const [vehicleIds, setVehicleIds] = useState<string[]>([]);
+  const [vehicleServiceIds, setVehicleServiceIds] = useState<Record<string, string>>({});
   const [bookingDate, setBookingDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [usePoints, setUsePoints] = useState("");
@@ -46,15 +46,22 @@ function Booking() {
     (branch) => branch.BranchID === Number(branchId),
   );
 
-  const selectedVehicle = vehicles.find(
-    (vehicle) => vehicle.VehicleID === Number(vehicleId),
+  const selectedVehicles = vehicles.filter((vehicle) =>
+    vehicleIds.includes(String(vehicle.VehicleID)),
   );
 
-  const selectedService = services.find(
-    (service) => service.ServiceID === Number(serviceId),
+  const selectedVehicleCount = selectedVehicles.length;
+  const selectedSlot = slots.find((slot) => slot.StartTime === startTime);
+  const selectedVehicleServices = selectedVehicles.map((vehicle) => {
+    const service = services.find(
+      (item) => item.ServiceID === Number(vehicleServiceIds[String(vehicle.VehicleID)]),
+    );
+    return { vehicle, service };
+  });
+  const servicePrice = selectedVehicleServices.reduce(
+    (sum, item) => sum + Number(item.service?.ActualPrice || 0),
+    0,
   );
-
-  const servicePrice = Number(selectedService?.ActualPrice || 0);
   const pointToMoneyRate = Number(import.meta.env.VITE_POINT_TO_MONEY_RATE || 200);
   const requestedPoints = Number(usePoints || 0);
   const normalizedRequestedPoints = Number.isFinite(requestedPoints)
@@ -119,7 +126,7 @@ function Booking() {
         setLoadingServices(true);
         setMessage("");
         setServices([]);
-        setServiceId("");
+        setVehicleServiceIds({});
         setStartTime("");
 
         const res = await axiosClient.get(`/api/branches/${branchId}/services`);
@@ -192,13 +199,14 @@ function Booking() {
       return;
     }
 
-    if (!vehicleId) {
-      showMessage("Vui lòng chọn xe");
+    if (vehicleIds.length === 0) {
+      showMessage("Vui lòng chọn ít nhất 1 xe");
       return;
     }
 
-    if (!serviceId) {
-      showMessage("Vui lòng chọn dịch vụ");
+    const missingServiceVehicle = selectedVehicleServices.find((item) => !item.service);
+    if (missingServiceVehicle) {
+      showMessage(`Vui lòng chọn dịch vụ cho xe ${missingServiceVehicle.vehicle.LicensePlate}`);
       return;
     }
 
@@ -209,6 +217,13 @@ function Booking() {
 
     if (!startTime) {
       showMessage("Vui lòng chọn khung giờ");
+      return;
+    }
+
+    if (selectedSlot && selectedSlot.Available < vehicleIds.length) {
+      showMessage(
+        `Khung giờ này chỉ còn ${selectedSlot.Available} chỗ trống, không thể đặt ${vehicleIds.length} xe`,
+      );
       return;
     }
 
@@ -237,16 +252,14 @@ function Booking() {
         BookingDate: bookingDate,
         StartTime: startTime,
         UsePoints: pointsToUse,
-        Items: [
-          {
-            VehicleID: Number(vehicleId),
+        Items: vehicleIds.map((id) => ({
+            VehicleID: Number(id),
             Services: [
               {
-                ServiceID: Number(serviceId),
+                ServiceID: Number(vehicleServiceIds[id]),
               },
             ],
-          },
-        ],
+          })),
       };
 
       const res = await axiosClient.post("/api/bookings", bookingPayload, {
@@ -262,13 +275,30 @@ function Booking() {
             customerName: fullName,
             phone,
             branchName: selectedBranch?.BranchName || "",
-            vehicleName: selectedVehicle
-              ? `${selectedVehicle.LicensePlate} - ${
-                  selectedVehicle.Brand || "Chưa cập nhật"
-                } ${selectedVehicle.Model || ""}`
-              : "",
-            serviceName: selectedService?.ServiceName || "",
-            serviceDuration: selectedService?.DurationMinutes || 0,
+            vehicleName: selectedVehicles
+              .map(
+                (vehicle) =>
+                  `${vehicle.LicensePlate} - ${
+                    vehicle.Brand || "Chưa cập nhật"
+                  } ${vehicle.Model || ""}`.trim(),
+              )
+              .join(", "),
+            vehicleCount: selectedVehicleCount,
+            serviceName: selectedVehicleServices
+              .map(
+                ({ vehicle, service }) =>
+                  `${vehicle.LicensePlate}: ${service?.ServiceName || "Chưa chọn"}`,
+              )
+              .join(", "),
+            serviceDuration: Math.max(
+              0,
+              ...selectedVehicleServices.map((item) => Number(item.service?.DurationMinutes || 0)),
+            ),
+            vehicleServiceSummary: selectedVehicleServices.map(({ vehicle, service }) => ({
+              vehicleName: vehicle.LicensePlate,
+              serviceName: service?.ServiceName || "",
+              price: Number(service?.ActualPrice || 0),
+            })),
             servicePrice,
             tierDiscountPercent,
             tierDiscountAmount,
@@ -326,10 +356,10 @@ function Booking() {
             setPhone={setPhone}
             branchId={branchId}
             setBranchId={setBranchId}
-            vehicleId={vehicleId}
-            setVehicleId={setVehicleId}
-            serviceId={serviceId}
-            setServiceId={setServiceId}
+            vehicleIds={vehicleIds}
+            setVehicleIds={setVehicleIds}
+            vehicleServiceIds={vehicleServiceIds}
+            setVehicleServiceIds={setVehicleServiceIds}
             bookingDate={bookingDate}
             setBookingDate={setBookingDate}
             startTime={startTime}
@@ -349,8 +379,8 @@ function Booking() {
             loadingSlots={loadingSlots}
             isSubmitting={isSubmitting}
             selectedBranch={selectedBranch}
-            selectedVehicle={selectedVehicle}
-            selectedService={selectedService}
+            selectedVehicles={selectedVehicles}
+            selectedVehicleServices={selectedVehicleServices}
             onSubmit={handleSubmit}
           />
 
@@ -360,6 +390,7 @@ function Booking() {
             bookingDate={bookingDate}
             startTime={startTime}
             servicePrice={servicePrice}
+            selectedVehicleCount={selectedVehicleCount}
             tierDiscountPercent={tierDiscountPercent}
             tierDiscountAmount={tierDiscountAmount}
             usedPoints={usablePoints}
@@ -367,8 +398,8 @@ function Booking() {
             discountAmount={discountAmount}
             finalPrice={finalPrice}
             selectedBranch={selectedBranch}
-            selectedVehicle={selectedVehicle}
-            selectedService={selectedService}
+            selectedVehicles={selectedVehicles}
+            selectedVehicleServices={selectedVehicleServices}
           />
         </section>
       </main>

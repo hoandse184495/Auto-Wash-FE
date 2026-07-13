@@ -2,6 +2,11 @@ import axiosClient from "../api/axiosClient";
 
 export type BranchStatus = "Active" | "Inactive";
 
+export interface BranchListParams {
+  status?: BranchStatus;
+  includeInactive?: boolean;
+}
+
 export interface Branch {
   BranchID: number;
   BranchName: string;
@@ -43,8 +48,9 @@ const timeToIso = (time: string): string => {
 };
 
 const branchService = {
-  async getAllBranches(): Promise<Branch[]> {
+  async getAllBranches(params: BranchListParams = {}): Promise<Branch[]> {
     const response = await axiosClient.get("/api/branches", {
+      params,
       headers: getAuthHeader(),
     });
     if (response.data?.success && Array.isArray(response.data.data)) {

@@ -77,7 +77,15 @@ const ManagerSidebar: React.FC = () => {
         {/* Menu */}
         <nav className="mt-6 px-3">
           <div className="space-y-1">
-            {managerMenu.map((item) => (
+            {managerMenu
+              .filter(
+                (item) =>
+                  ![
+                    "/manager/workforce",
+                    "/manager/branch-operations",
+                  ].includes(item.path)
+              )
+              .map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}

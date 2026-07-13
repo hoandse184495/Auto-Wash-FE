@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { LogOut } from "lucide-react";
+import { Outlet, useNavigate } from "react-router-dom";
 import StaffSidebar from "../components/staff/StaffSidebar";
 import axiosClient from "../api/axiosClient";
 
@@ -22,9 +23,17 @@ function getStaffUser(): StaffUser | null {
 }
 
 const StaffLayout: React.FC = () => {
+  const navigate = useNavigate();
   const [staffName, setStaffName] = useState("Nhân viên");
   const [staffEmail, setStaffEmail] = useState("");
   const [branchName, setBranchName] = useState("Chưa xác định chi nhánh");
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userRole");
+    navigate("/login");
+  };
 
   useEffect(() => {
     const user = getStaffUser();
@@ -83,6 +92,16 @@ const StaffLayout: React.FC = () => {
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
               {staffName.charAt(0).toUpperCase()}
             </div>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100 hover:text-red-700"
+              title="Đăng xuất"
+            >
+              <LogOut size={16} />
+              <span>Đăng xuất</span>
+            </button>
           </div>
         </header>
 

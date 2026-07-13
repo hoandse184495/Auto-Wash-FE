@@ -1,8 +1,11 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { LogOut } from "lucide-react";
+import { Outlet, useNavigate } from "react-router-dom";
 import ManagerSidebar from "../components/manager/ManagerSidebar";
 
 const ManagerLayout: React.FC = () => {
+  const navigate = useNavigate();
+
   const getUserFromStorage = () => {
     try {
       const userStr = localStorage.getItem("user");
@@ -12,6 +15,13 @@ const ManagerLayout: React.FC = () => {
   };
 
   const user = getUserFromStorage();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
 
   return (
     <div className="flex min-h-screen bg-slate-100">
@@ -53,6 +63,16 @@ const ManagerLayout: React.FC = () => {
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center font-semibold shadow-lg">
                 {user?.FullName?.[0] || user?.username?.[0] || "M"}
               </div>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-300 transition hover:bg-red-500/20 hover:text-red-200"
+                title="Đăng xuất"
+              >
+                <LogOut size={16} />
+                <span>Đăng xuất</span>
+              </button>
             </div>
           </div>
         </header>

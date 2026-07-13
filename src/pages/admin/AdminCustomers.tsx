@@ -361,7 +361,7 @@ const AdminCustomers = () => {
                     const nextTier = getNextTier(customer);
 
                     return (
-                    <Fragment key={customer.customerId}>
+                    <Fragment key={customer.userId}>
                       <tr
                         className="hover:bg-slate-50/60 transition"
                       >
@@ -584,7 +584,7 @@ const AdminCustomers = () => {
                                       Mã khách hàng
                                     </span>
                                     <span className="font-mono text-xs text-slate-600">
-                                      #{customer.customerId}
+                                      {customer.customerId ? `#${customer.customerId}` : "Chưa phát sinh"}
                                     </span>
                                   </div>
                                   <div className="flex items-center justify-between text-sm">

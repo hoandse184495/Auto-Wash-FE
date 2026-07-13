@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { LogOut } from "lucide-react";
 import { Outlet, useNavigate } from "react-router-dom";
 import AdminSidebar from "../components/admin/AdminSidebar";
 
@@ -14,6 +15,13 @@ const AdminLayout: React.FC = () => {
   };
 
   const [user, setUser] = useState(getUserFromStorage());
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
 
   useEffect(() => {
     const syncUser = () => setUser(getUserFromStorage());
@@ -70,6 +78,16 @@ const AdminLayout: React.FC = () => {
                 title="Mở hồ sơ"
               >
                 {user?.fullName?.[0] || user?.FullName?.[0] || user?.username?.[0] || "A"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-300 transition hover:bg-red-500/20 hover:text-red-200"
+                title="Đăng xuất"
+              >
+                <LogOut size={16} />
+                <span>Đăng xuất</span>
               </button>
             </div>
           </div>

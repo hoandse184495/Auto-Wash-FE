@@ -39,8 +39,6 @@ interface BranchDetail {
   todayBookings: number;
   monthBookings: number;
   revenue: number;
-  occupancy: number;
-  rating: number;
 }
 
 interface CreateBranchForm {
@@ -105,7 +103,7 @@ const AdminBranches = () => {
     setError(null);
     try {
       const [branchList, userList] = await Promise.all([
-        branchService.getAllBranches(),
+        branchService.getAllBranches({ includeInactive: true }),
         userService.getAllUsers(),
       ]);
 
@@ -138,8 +136,6 @@ const AdminBranches = () => {
           todayBookings: 0,
           monthBookings: 0,
           revenue: 0,
-          occupancy: 0,
-          rating: 0,
         };
       });
 
@@ -700,7 +696,7 @@ const AdminBranches = () => {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-3">
                     <div className="rounded-lg border border-slate-200 bg-white p-3">
                       <div className="flex items-center gap-2 mb-1">
                         <Users size={14} className="text-slate-400" />
@@ -708,17 +704,6 @@ const AdminBranches = () => {
                       </div>
                       <p className="text-2xl font-bold text-slate-800">
                         {selectedBranch.totalStaff}
-                      </p>
-                    </div>
-                    <div className="rounded-lg border border-slate-200 bg-white p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-amber-500 text-sm">⭐</span>
-                        <p className="text-xs text-slate-500">Đánh giá</p>
-                      </div>
-                      <p className="text-2xl font-bold text-slate-800">
-                        {selectedBranch.rating > 0
-                          ? selectedBranch.rating.toFixed(1)
-                          : "-"}
                       </p>
                     </div>
                   </div>
@@ -732,7 +717,7 @@ const AdminBranches = () => {
                   Hiệu suất hoạt động
                 </h3>
 
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-blue-50 to-white p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <CalendarCheck size={16} className="text-blue-600" />
@@ -761,18 +746,6 @@ const AdminBranches = () => {
                     <p className="text-lg font-bold text-emerald-600">
                       {selectedBranch.revenue > 0
                         ? formatCurrency(selectedBranch.revenue)
-                        : "-"}
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-amber-50 to-white p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp size={16} className="text-amber-600" />
-                      <p className="text-xs text-slate-600">Công suất</p>
-                    </div>
-                    <p className="text-2xl font-bold text-amber-600">
-                      {selectedBranch.occupancy > 0
-                        ? `${selectedBranch.occupancy}%`
                         : "-"}
                     </p>
                   </div>

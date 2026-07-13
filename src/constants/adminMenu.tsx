@@ -9,7 +9,6 @@ import {
   DollarSign,
   ReceiptText,
   Wrench,
-  Tags,
   Settings2,
   CalendarClock,
 } from "lucide-react";
@@ -34,11 +33,6 @@ export const adminMenu = [
     path: "/admin/services",
     name: "Dịch vụ",
     icon: <Wrench size={20} />,
-  },
-  {
-    path: "/admin/promotions",
-    name: "Khuyến mãi",
-    icon: <Tags size={20} />,
   },
   {
     path: "/admin/branch-operations",
