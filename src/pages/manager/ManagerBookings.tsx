@@ -155,13 +155,14 @@ const ManagerBookings = () => {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [message, setMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [bookingDate, setBookingDate] = useState(getTodayInputValue());
+  const [fromDate, setFromDate] = useState(getTodayInputValue());
+  const [toDate, setToDate] = useState(getTodayInputValue());
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
     fetchBookings();
-  }, [bookingDate]);
+  }, [fromDate, toDate]);
 
   async function fetchBookings() {
     try {
@@ -175,17 +176,49 @@ const ManagerBookings = () => {
         return;
       }
 
-      const response = await axiosClient.get(
-        "/api/staff-operations/today-bookings",
-        {
-          params: { bookingDate },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const start = new Date(`${fromDate}T00:00:00`);
+      const end = new Date(`${toDate}T00:00:00`);
+
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        setMessage("Vui lòng chọn đầy đủ khoảng ngày");
+        setBookings([]);
+        return;
+      }
+
+      if (start > end) {
+        setMessage("Ngày bắt đầu không được sau ngày kết thúc");
+        setBookings([]);
+        return;
+      }
+
+      const rangeInDays = Math.floor((end.getTime() - start.getTime()) / 86400000) + 1;
+      if (rangeInDays > 31) {
+        setMessage("Chỉ có thể xem tối đa 31 ngày trong một lần lọc");
+        setBookings([]);
+        return;
+      }
+
+      const dates = Array.from({ length: rangeInDays }, (_, index) => {
+        const date = new Date(start);
+        date.setDate(start.getDate() + index);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      });
+
+      const responses = await Promise.all(
+        dates.map((bookingDate) =>
+          axiosClient.get("/api/staff-operations/today-bookings", {
+            params: { bookingDate },
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        )
       );
 
-      const apiBookings: ApiBooking[] = response.data.data || [];
+      const apiBookings: ApiBooking[] = responses.flatMap(
+        (response) => response.data.data || []
+      );
 
       const mappedBookings = apiBookings.flatMap((apiBooking) =>
         convertApiBookingToBooking(apiBooking)
@@ -285,7 +318,7 @@ const ManagerBookings = () => {
       pending: {
         bg: "bg-amber-100",
         text: "text-amber-700",
-        label: "Chờ xác nhận",
+        label: "Chờ xử lý",
       },
       checked_in: {
         bg: "bg-blue-100",
@@ -376,7 +409,7 @@ const ManagerBookings = () => {
               <p className="text-2xl font-bold text-amber-700">
                 {stats.pending}
               </p>
-              <p className="text-xs text-amber-600">Chờ xác nhận</p>
+              <p className="text-xs text-amber-600">Chờ xử lý</p>
             </div>
           </div>
         </div>
@@ -413,17 +446,36 @@ const ManagerBookings = () => {
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="relative">
-          <CalendarCheck
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            size={18}
-          />
-          <input
-            type="date"
-            value={bookingDate}
-            onChange={(e) => setBookingDate(e.target.value)}
-            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 sm:w-52"
-          />
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <label className="relative">
+            <span className="absolute -top-2 left-3 z-10 bg-slate-50 px-1 text-[10px] font-semibold uppercase text-slate-500">Từ ngày</span>
+            <CalendarCheck className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => {
+                const value = e.target.value;
+                setFromDate(value);
+                if (value > toDate) setToDate(value);
+              }}
+              className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 sm:w-44"
+            />
+          </label>
+          <label className="relative">
+            <span className="absolute -top-2 left-3 z-10 bg-slate-50 px-1 text-[10px] font-semibold uppercase text-slate-500">Đến ngày</span>
+            <CalendarCheck className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input
+              type="date"
+              value={toDate}
+              min={fromDate}
+              onChange={(e) => {
+                const value = e.target.value;
+                setToDate(value);
+                if (value < fromDate) setFromDate(value);
+              }}
+              className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 sm:w-44"
+            />
+          </label>
         </div>
 
         <div className="relative flex-1">
@@ -453,7 +505,7 @@ const ManagerBookings = () => {
             className="appearance-none rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
           >
             <option value="all">Tất cả trạng thái</option>
-            <option value="pending">Chờ xác nhận</option>
+            <option value="pending">Chờ xử lý</option>
             <option value="checked_in">Đã check-in</option>
             <option value="in_progress">Đang rửa</option>
             <option value="completed">Hoàn thành</option>

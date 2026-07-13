@@ -8,6 +8,10 @@ import {
   Crown,
   DollarSign,
   ReceiptText,
+  Wrench,
+  Tags,
+  Settings2,
+  CalendarClock,
 } from "lucide-react";
 
 export const adminMenu = [
@@ -23,8 +27,28 @@ export const adminMenu = [
   },
   {
     path: "/admin/transactions",
-    name: "Giao dịch & Hóa đơn",
+    name: "Giao dịch",
     icon: <ReceiptText size={20} />,
+  },
+  {
+    path: "/admin/services",
+    name: "Dịch vụ",
+    icon: <Wrench size={20} />,
+  },
+  {
+    path: "/admin/promotions",
+    name: "Khuyến mãi",
+    icon: <Tags size={20} />,
+  },
+  {
+    path: "/admin/branch-operations",
+    name: "Vận hành Chi nhánh",
+    icon: <Settings2 size={20} />,
+  },
+  {
+    path: "/admin/workforce",
+    name: "Ca làm & Phân lịch",
+    icon: <CalendarClock size={20} />,
   },
   {
     path: "/admin/managers",

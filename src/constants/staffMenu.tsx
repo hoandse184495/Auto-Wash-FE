@@ -3,6 +3,7 @@ import {
   CalendarCheck,
   Cpu,
   History,
+  CalendarClock,
 } from "lucide-react";
 
 export const staffMenu = [
@@ -20,6 +21,11 @@ export const staffMenu = [
     path: "/staff/bays",
     name: "Trạm Rửa Xe",
     icon: <Cpu size={20} />,
+  },
+  {
+    path: "/staff/schedule",
+    name: "Lịch làm của tôi",
+    icon: <CalendarClock size={20} />,
   },
   {
     path: "/staff/history",

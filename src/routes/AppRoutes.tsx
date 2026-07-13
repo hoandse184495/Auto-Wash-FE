@@ -28,6 +28,10 @@ import AdminCustomers from "../pages/admin/AdminCustomers";
 import AdminTierConfig from "../pages/admin/AdminTierConfig";
 import AdminRevenue from "../pages/admin/AdminRevenue";
 import AdminTransactions from "../pages/admin/AdminTransactions";
+import ServiceManagement from "../pages/operations/ServiceManagement";
+import PromotionManagement from "../pages/operations/PromotionManagement";
+import BranchOperations from "../pages/operations/BranchOperations";
+import WorkforceManagement from "../pages/operations/WorkforceManagement";
 
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
@@ -135,6 +139,7 @@ const AppRoutes = () => {
           <Route path="bookings" element={<StaffBookings />} />
           <Route path="bays" element={<StaffBays />} />
           <Route path="history" element={<StaffHistory />} />
+          <Route path="schedule" element={<WorkforceManagement />} />
         </Route>
 
         {/* Manager */}
@@ -152,6 +157,9 @@ const AppRoutes = () => {
           <Route path="transactions" element={<ManagerTransactions />} />
           <Route path="statistics" element={<ManagerStatistics />} />
           <Route path="branch" element={<ManagerBranchInfo />} />
+          <Route path="promotions" element={<PromotionManagement />} />
+          <Route path="branch-operations" element={<BranchOperations />} />
+          <Route path="workforce" element={<WorkforceManagement />} />
         </Route>
 
         {/* Admin */}
@@ -173,6 +181,10 @@ const AppRoutes = () => {
           <Route path="tier-configs" element={<AdminTierConfig />} />
           <Route path="revenue" element={<AdminRevenue />} />
           <Route path="transactions" element={<AdminTransactions />} />
+          <Route path="services" element={<ServiceManagement />} />
+          <Route path="promotions" element={<PromotionManagement />} />
+          <Route path="branch-operations" element={<BranchOperations />} />
+          <Route path="workforce" element={<WorkforceManagement />} />
         </Route>
 
         {/* Customer cần đăng nhập */}
