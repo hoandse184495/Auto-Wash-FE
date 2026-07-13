@@ -11,6 +11,9 @@ export type StaffServiceLineItem = {
   Services?: {
     ServiceName?: string;
   };
+  LineTotal?: number | string | null;
+  UnitPrice?: number | string | null;
+  Quantity?: number | null;
 };
 
 export type StaffBookingItem = {
@@ -40,8 +43,19 @@ export type StaffBooking = {
       Phone?: string;
     };
   };
+  Transactions?: {
+    Status?: string | null;
+  }[];
   BookingItems?: StaffBookingItem[];
 };
+
+export type StaffDisplayStatus =
+  | "Pending"
+  | "CheckedIn"
+  | "InProgress"
+  | "AwaitingPayment"
+  | "Completed"
+  | "Cancelled";
 
 export type StaffFlatItem = {
   bookingGroupId: number;
@@ -56,6 +70,7 @@ export type StaffFlatItem = {
   vehicleName: string;
   serviceNames: string[];
   status: StaffItemStatus | string;
+  paymentStatus: "Paid" | "Unpaid";
   checkInAt?: string | null;
   washStartAt?: string | null;
   completedAt?: string | null;
@@ -67,6 +82,12 @@ export type BranchServiceOption = {
   BasePrice?: number | string;
   PriceOverride?: number | string | null;
   ActualPrice?: number | string | null;
+};
+
+export type BranchPaymentInfo = {
+  BranchID: number;
+  BranchName?: string | null;
+  BankAccount?: string | null;
 };
 
 export type StaffTransaction = {
@@ -154,6 +175,7 @@ export function getStatusLabel(status: string) {
     Pending: "Chờ xử lý",
     CheckedIn: "Đã check-in",
     InProgress: "Đang rửa",
+    AwaitingPayment: "Chờ thanh toán",
     Completed: "Hoàn thành",
     Cancelled: "Đã hủy",
   };
@@ -166,6 +188,7 @@ export function getStatusClass(status: string) {
     Pending: "bg-amber-100 text-amber-700",
     CheckedIn: "bg-blue-100 text-blue-700",
     InProgress: "bg-purple-100 text-purple-700",
+    AwaitingPayment: "bg-orange-100 text-orange-700",
     Completed: "bg-emerald-100 text-emerald-700",
     Cancelled: "bg-red-100 text-red-700",
   };
@@ -189,6 +212,20 @@ export function getNextStatus(status: string) {
   return null;
 }
 
+export function getDisplayStatus(item: Pick<StaffFlatItem, "status" | "paymentStatus">): StaffDisplayStatus {
+  if (item.status === "Completed" && item.paymentStatus !== "Paid") {
+    return "AwaitingPayment";
+  }
+
+  if (item.status === "Pending") return "Pending";
+  if (item.status === "CheckedIn") return "CheckedIn";
+  if (item.status === "InProgress") return "InProgress";
+  if (item.status === "Completed") return "Completed";
+  if (item.status === "Cancelled") return "Cancelled";
+
+  return "Pending";
+}
+
 export function flattenStaffBookings(bookings: StaffBooking[]): StaffFlatItem[] {
   const flattened = bookings.flatMap((booking) => {
     const customerName = booking.Customers?.Users?.FullName || "Chưa có tên";
@@ -203,6 +240,12 @@ export function flattenStaffBookings(bookings: StaffBooking[]): StaffFlatItem[] 
 
       const brand = item.Vehicles?.Brand || "";
       const model = item.Vehicles?.Model || "";
+
+      const hasPaidTransaction =
+        booking.Transactions?.some(
+          (transaction) => String(transaction?.Status || "").toLowerCase() === "paid"
+        ) || false;
+      const paymentStatus: "Paid" | "Unpaid" = hasPaidTransaction ? "Paid" : "Unpaid";
 
       return {
         bookingGroupId: booking.BookingGroupID,
@@ -219,6 +262,7 @@ export function flattenStaffBookings(bookings: StaffBooking[]): StaffFlatItem[] 
         vehicleName: [brand, model].filter(Boolean).join(" ") || "Chưa cập nhật",
         serviceNames,
         status: item.Status || "Pending",
+        paymentStatus,
         checkInAt: item.CheckInAt,
         washStartAt: item.WashStartAt,
         completedAt: item.CompletedAt,
@@ -316,6 +360,15 @@ export async function fetchBranchServices(branchId: number) {
   try {
     const response = await axiosClient.get(`/api/branches/${branchId}/services`);
     return (response.data.data || []) as BranchServiceOption[];
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+export async function fetchBranchPaymentInfo(branchId: number) {
+  try {
+    const response = await axiosClient.get(`/api/branches/${branchId}`);
+    return (response.data.data || null) as BranchPaymentInfo | null;
   } catch (error) {
     throw new Error(getErrorMessage(error));
   }

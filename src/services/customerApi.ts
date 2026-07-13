@@ -18,6 +18,12 @@ const customerApi = {
     });
   },
 
+  getPointsSummary() {
+    return axiosClient.get("/api/customers/points-summary", {
+      headers: getAuthHeader(),
+    });
+  },
+
   getMyBookings() {
     return axiosClient.get("/api/bookings/me", {
       headers: getAuthHeader(),
@@ -32,30 +38,6 @@ const customerApi = {
         headers: getAuthHeader(),
       },
     );
-  },
-
-  getRewards() {
-    return axiosClient.get("/api/rewards");
-  },
-
-  redeemReward(rewardId: number) {
-    return axiosClient.post(
-      "/api/rewards/redeem",
-      { RewardID: rewardId },
-      {
-        headers: getAuthHeader(),
-      },
-    );
-  },
-
-  getRewardRedemptions(customerId: number) {
-    return axiosClient.get(`/api/rewards/customer/${customerId}`, {
-      headers: getAuthHeader(),
-    });
-  },
-
-  getActivePromotions() {
-    return axiosClient.get("/api/promotions/active");
   },
 
   getBranches() {

@@ -8,6 +8,12 @@ type BookingSummaryProps = {
   bookingDate: string;
   startTime: string;
   servicePrice: number;
+  tierDiscountPercent: number;
+  tierDiscountAmount: number;
+  usedPoints: number;
+  pointDiscountAmount: number;
+  discountAmount: number;
+  finalPrice: number;
   selectedBranch?: Branch;
   selectedVehicle?: Vehicle;
   selectedService?: Service;
@@ -19,6 +25,12 @@ const BookingSummary = ({
   bookingDate,
   startTime,
   servicePrice,
+  tierDiscountPercent,
+  tierDiscountAmount,
+  usedPoints,
+  pointDiscountAmount,
+  discountAmount,
+  finalPrice,
   selectedBranch,
   selectedVehicle,
   selectedService,
@@ -60,8 +72,38 @@ const BookingSummary = ({
 
           <div className="border-t border-slate-200 pt-5">
             <p className="text-slate-500">Thanh toán dự kiến</p>
-            <p className="mt-1 text-3xl font-bold text-sky-700">
+            <p className="mt-1 text-xl font-bold text-slate-700 line-through">
               {formatMoney(servicePrice)}
+            </p>
+
+            {tierDiscountAmount > 0 && (
+              <div className="mt-3 flex items-center justify-between text-sm">
+                <span className="text-slate-500">Giảm theo hạng ({tierDiscountPercent}%)</span>
+                <span className="font-semibold text-emerald-700">
+                  -{formatMoney(tierDiscountAmount)}
+                </span>
+              </div>
+            )}
+
+            <div className="mt-3 flex items-center justify-between text-sm">
+              <span className="text-slate-500">Quy đổi điểm</span>
+              <span className="font-semibold text-emerald-700">
+                -{formatMoney(pointDiscountAmount)}
+              </span>
+            </div>
+
+            <div className="mt-2 flex items-center justify-between text-sm">
+              <span className="text-slate-500">Số điểm dùng</span>
+              <span className="font-semibold text-slate-900">{usedPoints}</span>
+            </div>
+
+            <div className="mt-2 flex items-center justify-between text-sm">
+              <span className="text-slate-500">Tổng giảm</span>
+              <span className="font-semibold text-emerald-700">-{formatMoney(discountAmount)}</span>
+            </div>
+
+            <p className="mt-3 text-3xl font-bold text-sky-700">
+              {formatMoney(finalPrice)}
             </p>
           </div>
         </div>

@@ -5,10 +5,8 @@ import {
   CircleCheckBig,
   ClipboardList,
   Car,
-  ReceiptText,
   RefreshCw,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import StatCard from "../../components/staff/StatCard";
 import axiosClient, { getErrorMessage } from "../../api/axiosClient";
 import { getTodayInputValue } from "./staffOperations";
@@ -244,36 +242,6 @@ const StaffDashboard = () => {
     }
   }
 
-  async function updateItemStatus(bookingItemId: number, status: string) {
-    try {
-      setMessage("");
-
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        setMessage("Bạn cần đăng nhập bằng tài khoản staff");
-        return;
-      }
-
-      await axiosClient.patch(
-        `/api/staff-operations/booking-items/${bookingItemId}/status`,
-        {
-          status,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      await fetchDashboardData();
-    } catch (error) {
-      console.log(error);
-      setMessage(getErrorMessage(error));
-    }
-  }
-
   function getStatusBadge(status: string) {
     if (status === "Completed") {
       return (
@@ -419,7 +387,6 @@ const StaffDashboard = () => {
                         <th className="py-3 pr-4">Xe</th>
                         <th className="px-4">Dịch vụ</th>
                         <th className="px-4">Trạng thái</th>
-                        <th className="px-4">Thao tác</th>
                       </tr>
                     </thead>
 
@@ -452,53 +419,6 @@ const StaffDashboard = () => {
 
                           <td className="px-4">
                             {getStatusBadge(item.Status)}
-                          </td>
-
-                          <td className="px-4">
-                            <div className="flex flex-wrap gap-2">
-                              <button
-                                type="button"
-                                disabled={item.Status !== "Pending"}
-                                onClick={() =>
-                                  updateItemStatus(item.BookingItemID, "CheckedIn")
-                                }
-                                className="rounded-lg bg-purple-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-purple-700 disabled:bg-gray-300"
-                              >
-                                Check-in
-                              </button>
-
-                              <button
-                                type="button"
-                                disabled={item.Status !== "CheckedIn"}
-                                onClick={() =>
-                                  updateItemStatus(item.BookingItemID, "InProgress")
-                                }
-                                className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:bg-gray-300"
-                              >
-                                Bắt đầu rửa
-                              </button>
-
-                              <button
-                                type="button"
-                                disabled={item.Status !== "InProgress"}
-                                onClick={() =>
-                                  updateItemStatus(item.BookingItemID, "Completed")
-                                }
-                                className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-green-700 disabled:bg-gray-300"
-                              >
-                                Hoàn thành
-                              </button>
-
-                              {item.Status === "Completed" && (
-                                <Link
-                                  to="/staff/bookings"
-                                  className="inline-flex items-center gap-1 rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-600"
-                                >
-                                  <ReceiptText size={14} />
-                                  Thanh toán
-                                </Link>
-                              )}
-                            </div>
                           </td>
                         </tr>
                       ))}

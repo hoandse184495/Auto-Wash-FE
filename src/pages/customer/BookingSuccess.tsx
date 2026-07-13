@@ -147,9 +147,30 @@ function BookingSuccess() {
                                 </div>
 
                                 <div className="mt-2 flex justify-between gap-4">
+                                    <span className="text-slate-500">Giảm theo hạng</span>
+                                    <span className="font-semibold text-red-600">
+                                        -{formatMoney(summary.tierDiscountAmount)}
+                                    </span>
+                                </div>
+
+                                <div className="mt-2 flex justify-between gap-4">
+                                    <span className="text-slate-500">Quy đổi điểm</span>
+                                    <span className="font-semibold text-red-600">
+                                        -{formatMoney(summary.pointDiscountAmount)}
+                                    </span>
+                                </div>
+
+                                <div className="mt-2 flex justify-between gap-4">
                                     <span className="text-slate-500">Giảm giá</span>
                                     <span className="font-semibold text-red-600">
                                         -{formatMoney(summary.discountAmount)}
+                                    </span>
+                                </div>
+
+                                <div className="mt-2 flex justify-between gap-4">
+                                    <span className="text-slate-500">Điểm đã chọn dùng</span>
+                                    <span className="font-semibold text-slate-800">
+                                        {summary.usedPoints || 0}
                                     </span>
                                 </div>
 

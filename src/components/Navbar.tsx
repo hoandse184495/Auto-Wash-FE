@@ -57,10 +57,10 @@ const Navbar = () => {
               </Link>
 
               <Link
-                to="/customer/services"
+                to="/customer/points"
                 className="font-medium text-gray-700 hover:text-sky-600"
               >
-                Khuyến mãi
+                Điểm của tôi
               </Link>
             </>
           )}
@@ -121,10 +121,10 @@ const Navbar = () => {
                 </Link>
 
                 <Link
-                  to="/customer/bookings"
+                  to="/customer/transactions"
                   className="block rounded-lg px-4 py-3 font-medium text-slate-700 hover:bg-gray-100"
                 >
-                  Lịch hẹn của tôi
+                  Lịch sử giao dịch
                 </Link>
 
                 <button

@@ -28,7 +28,9 @@ function Booking() {
   const [serviceId, setServiceId] = useState("");
   const [bookingDate, setBookingDate] = useState("");
   const [startTime, setStartTime] = useState("");
+  const [usePoints, setUsePoints] = useState("");
   const [note, setNote] = useState("");
+  const [availablePoints, setAvailablePoints] = useState(0);
 
   const [loading, setLoading] = useState(true);
   const [loadingServices, setLoadingServices] = useState(false);
@@ -36,6 +38,7 @@ function Booking() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [message, setMessage] = useState("");
+  const [tierDiscountPercent, setTierDiscountPercent] = useState(0);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -52,6 +55,17 @@ function Booking() {
   );
 
   const servicePrice = Number(selectedService?.ActualPrice || 0);
+  const pointToMoneyRate = Number(import.meta.env.VITE_POINT_TO_MONEY_RATE || 200);
+  const requestedPoints = Number(usePoints || 0);
+  const normalizedRequestedPoints = Number.isFinite(requestedPoints)
+    ? Math.max(0, Math.floor(requestedPoints))
+    : 0;
+  const usablePoints = Math.min(normalizedRequestedPoints, availablePoints);
+  const tierDiscountAmount = (servicePrice * tierDiscountPercent) / 100;
+  const amountAfterTier = Math.max(0, servicePrice - tierDiscountAmount);
+  const pointDiscountAmount = Math.min(amountAfterTier, usablePoints * pointToMoneyRate);
+  const discountAmount = tierDiscountAmount + pointDiscountAmount;
+  const finalPrice = Math.max(0, servicePrice - discountAmount);
 
   useEffect(() => {
     async function loadBookingData() {
@@ -81,6 +95,8 @@ function Booking() {
         setFullName(profile.Users.FullName || "");
         setPhone(profile.Users.Phone || "");
         setVehicles(profile.Vehicles || []);
+        setAvailablePoints(Number(profile.LoyaltyAccounts?.[0]?.CurrentPoints || 0));
+        setTierDiscountPercent(Number(profile.LoyaltyAccounts?.[0]?.tier_configs?.DiscountPercent || 0));
       } catch (error) {
         console.log(error);
         setMessage(getErrorMessage(error));
@@ -199,6 +215,16 @@ function Booking() {
     try {
       setIsSubmitting(true);
 
+      const pointsToUse = usePoints.trim() === "" ? 0 : Number(usePoints);
+      if (!Number.isFinite(pointsToUse) || pointsToUse < 0 || !Number.isInteger(pointsToUse)) {
+        showMessage("Số điểm sử dụng phải là số nguyên không âm");
+        return;
+      }
+      if (pointsToUse > availablePoints) {
+        showMessage(`Bạn chỉ có ${availablePoints} điểm để sử dụng`);
+        return;
+      }
+
       const token = localStorage.getItem("token");
 
       if (!token) {
@@ -210,6 +236,7 @@ function Booking() {
         BranchID: Number(branchId),
         BookingDate: bookingDate,
         StartTime: startTime,
+        UsePoints: pointsToUse,
         Items: [
           {
             VehicleID: Number(vehicleId),
@@ -243,8 +270,12 @@ function Booking() {
             serviceName: selectedService?.ServiceName || "",
             serviceDuration: selectedService?.DurationMinutes || 0,
             servicePrice,
-            discountAmount: 0,
-            finalPrice: servicePrice,
+            tierDiscountPercent,
+            tierDiscountAmount,
+            pointDiscountAmount,
+            discountAmount,
+            finalPrice,
+            usedPoints: pointsToUse,
             bookingDate,
             startTime,
             note,
@@ -303,6 +334,9 @@ function Booking() {
             setBookingDate={setBookingDate}
             startTime={startTime}
             setStartTime={setStartTime}
+            usePoints={usePoints}
+            setUsePoints={setUsePoints}
+            availablePoints={availablePoints}
             note={note}
             setNote={setNote}
             branches={branches}
@@ -326,6 +360,12 @@ function Booking() {
             bookingDate={bookingDate}
             startTime={startTime}
             servicePrice={servicePrice}
+            tierDiscountPercent={tierDiscountPercent}
+            tierDiscountAmount={tierDiscountAmount}
+            usedPoints={usablePoints}
+            pointDiscountAmount={pointDiscountAmount}
+            discountAmount={discountAmount}
+            finalPrice={finalPrice}
             selectedBranch={selectedBranch}
             selectedVehicle={selectedVehicle}
             selectedService={selectedService}
