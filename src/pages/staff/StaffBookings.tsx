@@ -8,7 +8,6 @@ import {
   Eye,
   Filter,
   Phone,
-  Plus,
   ReceiptText,
   RefreshCw,
   Search,
@@ -17,11 +16,13 @@ import {
 } from "lucide-react";
 import {
   addServicesToBookingItem,
+  fetchBranchPaymentInfo,
   createTransactionFromBooking,
   fetchBranchServices,
   fetchTodayBookings,
   flattenStaffBookings,
   formatDate,
+  getDisplayStatus,
   formatMoney,
   formatTime,
   generateInvoice,
@@ -34,6 +35,7 @@ import {
   updateBookingItemStatus,
 } from "./staffOperations";
 import type {
+  BranchPaymentInfo,
   BranchServiceOption,
   StaffFlatItem,
   StaffInvoice,
@@ -45,6 +47,7 @@ const statuses = [
   { value: "Pending", label: "Chờ xử lý" },
   { value: "CheckedIn", label: "Đã check-in" },
   { value: "InProgress", label: "Đang rửa" },
+  { value: "AwaitingPayment", label: "Chờ thanh toán" },
   { value: "Completed", label: "Hoàn thành" },
 ];
 
@@ -68,6 +71,7 @@ const StaffBookings = () => {
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "BANK_TRANSFER">("CASH");
   const [paymentTransaction, setPaymentTransaction] = useState<StaffTransaction | null>(null);
   const [paymentInvoice, setPaymentInvoice] = useState<StaffInvoice | null>(null);
+  const [paymentBranchInfo, setPaymentBranchInfo] = useState<BranchPaymentInfo | null>(null);
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
 
   useEffect(() => {
@@ -144,13 +148,19 @@ const StaffBookings = () => {
       setPaymentItem(item);
       setPaymentInvoice(null);
       setPaymentTransaction(null);
+      setPaymentBranchInfo(null);
       setPaymentMethod("CASH");
 
-      const transaction = await createTransactionFromBooking(item.bookingGroupId);
+      const [transaction, branchInfo] = await Promise.all([
+        createTransactionFromBooking(item.bookingGroupId),
+        fetchBranchPaymentInfo(item.branchId),
+      ]);
       setPaymentTransaction(transaction);
+      setPaymentBranchInfo(branchInfo);
     } catch (error) {
       setPaymentItem(null);
       setPaymentTransaction(null);
+      setPaymentBranchInfo(null);
       setMessage(error instanceof Error ? error.message : "Không tạo được giao dịch thanh toán");
     } finally {
       setIsPaymentLoading(false);
@@ -185,6 +195,7 @@ const StaffBookings = () => {
     setPaymentItem(null);
     setPaymentTransaction(null);
     setPaymentInvoice(null);
+    setPaymentBranchInfo(null);
     setIsPaymentLoading(false);
   }
 
@@ -200,7 +211,8 @@ const StaffBookings = () => {
     const keyword = searchTerm.trim().toLowerCase();
 
     return items.filter((item) => {
-      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+      const displayStatus = getDisplayStatus(item);
+      const matchesStatus = statusFilter === "all" || displayStatus === statusFilter;
       const matchesSearch =
         !keyword ||
         item.bookingCode.toLowerCase().includes(keyword) ||
@@ -219,7 +231,7 @@ const StaffBookings = () => {
     active: items.filter(
       (item) => item.status === "CheckedIn" || item.status === "InProgress"
     ).length,
-    completed: items.filter((item) => item.status === "Completed").length,
+    completed: items.filter((item) => getDisplayStatus(item) === "Completed").length,
   };
 
   const nextAction = selectedItem ? getNextStatus(selectedItem.status) : null;
@@ -340,8 +352,10 @@ const StaffBookings = () => {
                     <td className="max-w-xs px-5 py-4 text-sm text-slate-600">{getServicesText(item)}</td>
                     <td className="px-5 py-4 text-sm font-medium text-slate-700">{formatTime(item.startTime)}</td>
                     <td className="px-5 py-4">
-                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClass(item.status)}`}>
-                        {getStatusLabel(item.status)}
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClass(getDisplayStatus(item))}`}
+                      >
+                        {getStatusLabel(getDisplayStatus(item))}
                       </span>
                     </td>
                     <td className="px-5 py-4">
@@ -353,24 +367,6 @@ const StaffBookings = () => {
                           title="Xem chi tiết"
                         >
                           <Eye size={18} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => openServicePanel(item)}
-                          disabled={item.status === "Completed"}
-                          className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-emerald-600 disabled:opacity-40"
-                          title="Thêm dịch vụ"
-                        >
-                          <Plus size={18} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => openPaymentPanel(item)}
-                          disabled={item.status !== "Completed"}
-                          className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-amber-600 disabled:opacity-40"
-                          title="Thanh toán và xuất hóa đơn"
-                        >
-                          <ReceiptText size={18} />
                         </button>
                       </div>
                     </td>
@@ -414,6 +410,7 @@ const StaffBookings = () => {
           item={paymentItem}
           transaction={paymentTransaction}
           invoice={paymentInvoice}
+          branchInfo={paymentBranchInfo}
           method={paymentMethod}
           isLoading={isPaymentLoading}
           onMethodChange={setPaymentMethod}
@@ -468,7 +465,7 @@ function DetailModal({
 
         <div className="grid gap-4 p-5 sm:grid-cols-2">
           <Info label="Booking" value={item.bookingCode} />
-          <Info label="Trạng thái" value={getStatusLabel(item.status)} />
+          <Info label="Trạng thái" value={getStatusLabel(getDisplayStatus(item))} />
           <Info label="Khách hàng" value={item.customerName} icon={<User size={14} />} />
           <Info label="Số điện thoại" value={item.customerPhone} icon={<Phone size={14} />} />
           <Info label="Biển số" value={item.licensePlate} icon={<Car size={14} />} />
@@ -526,6 +523,7 @@ function PaymentModal({
   item,
   transaction,
   invoice,
+  branchInfo,
   method,
   isLoading,
   onMethodChange,
@@ -535,6 +533,7 @@ function PaymentModal({
   item: StaffFlatItem;
   transaction: StaffTransaction | null;
   invoice: StaffInvoice | null;
+  branchInfo: BranchPaymentInfo | null;
   method: "CASH" | "BANK_TRANSFER";
   isLoading: boolean;
   onMethodChange: (method: "CASH" | "BANK_TRANSFER") => void;
@@ -542,11 +541,31 @@ function PaymentModal({
   onPay: () => void;
 }) {
   const isPaid = transaction?.Status === "Paid" || Boolean(invoice);
+  const bankName = String(import.meta.env.VITE_DEFAULT_BANK_NAME || "BIDV");
+  const bankBinRaw = String(import.meta.env.VITE_DEFAULT_BANK_BIN || "970418");
+  const defaultBankAccountRaw = String(import.meta.env.VITE_DEFAULT_BANK_ACCOUNT || "8816928535");
+  const accountOwner = String(import.meta.env.VITE_DEFAULT_ACCOUNT_OWNER || "Nguyễn Đức Hòa");
+  const bankBin = (bankBinRaw.match(/\d{6}/)?.[0] || "970418").trim();
+  const branchBankAccount = (branchInfo?.BankAccount || "").replace(/\D/g, "");
+  const defaultBankAccount = defaultBankAccountRaw.replace(/\D/g, "");
+  const bankAccount = defaultBankAccount || branchBankAccount;
+  const transferAmount = Math.max(0, Math.round(Number(transaction?.FinalAmount || 0)));
+  const transferContent = `${item.bookingCode}-${transaction?.TransactionID || ""}`;
+  const [isQrImageError, setIsQrImageError] = useState(false);
+
+  useEffect(() => {
+    setIsQrImageError(false);
+  }, [bankBin, bankAccount, transferAmount, transferContent]);
+
+  const qrUrl =
+    bankAccount && transferAmount > 0
+      ? `https://img.vietqr.io/image/${bankBin}-${bankAccount}-compact2.png?amount=${transferAmount}&addInfo=${encodeURIComponent(transferContent)}`
+      : "";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-100 p-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4">
+      <div className="flex max-h-[88vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-100 p-4 sm:p-5">
           <div>
             <h2 className="text-lg font-semibold text-slate-800">Thanh toán và xuất hóa đơn</h2>
             <p className="text-sm text-slate-500">
@@ -558,12 +577,12 @@ function PaymentModal({
           </button>
         </div>
 
-        <div className="space-y-4 p-5">
+        <div className="space-y-4 overflow-y-auto p-4 sm:p-5">
           <div className="grid gap-3 sm:grid-cols-2">
             <Info label="Khách hàng" value={item.customerName} icon={<User size={14} />} />
             <Info label="Số điện thoại" value={item.customerPhone} icon={<Phone size={14} />} />
             <Info label="Dịch vụ" value={getServicesText(item)} />
-            <Info label="Trạng thái xe" value={getStatusLabel(item.status)} />
+            <Info label="Trạng thái xe" value={getStatusLabel(getDisplayStatus(item))} />
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -618,6 +637,58 @@ function PaymentModal({
                   onClick={() => onMethodChange("BANK_TRANSFER")}
                 />
               </div>
+
+              {method === "BANK_TRANSFER" && (
+                <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                  <p className="text-sm font-semibold text-slate-800">QR chuyển khoản</p>
+                  <p className="mt-1 text-xs text-slate-600">
+                    Khách quét QR để chuyển khoản đúng số tiền. Sau khi nhận được tiền, bấm xác nhận thanh toán.
+                  </p>
+
+                  {qrUrl && !isQrImageError ? (
+                    <div className="mt-3 grid gap-4 sm:grid-cols-[150px_1fr] sm:items-start">
+                      <img
+                        src={qrUrl}
+                        alt="QR chuyển khoản"
+                        className="h-36 w-36 rounded-lg border border-slate-200 bg-white p-2"
+                        onLoad={() => setIsQrImageError(false)}
+                        onError={() => setIsQrImageError(true)}
+                      />
+                      <div className="space-y-2 rounded-lg bg-white p-3 text-sm text-slate-700">
+                        <p>
+                          <span className="font-semibold">Ngân hàng:</span> {bankName}
+                        </p>
+                        <p>
+                          <span className="font-semibold">Số tài khoản:</span> {bankAccount}
+                        </p>
+                        <p>
+                          <span className="font-semibold">Chủ tài khoản:</span> {accountOwner}
+                        </p>
+                        <p>
+                          <span className="font-semibold">Chi nhánh:</span> {branchInfo?.BranchName || "Chưa cập nhật"}
+                        </p>
+                        <p>
+                          <span className="font-semibold">Số tiền:</span> {formatMoney(transferAmount)} đ
+                        </p>
+                        <p>
+                          <span className="font-semibold">Nội dung:</span> {transferContent}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-3 space-y-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                      {!bankAccount ? (
+                        <p>Chưa có thông tin tài khoản nhận tiền của chi nhánh. Vui lòng cấu hình BankAccount để hiển thị QR.</p>
+                      ) : (
+                        <>
+                          <p>Không tải được ảnh QR từ VietQR. Vui lòng kiểm tra lại BIN hoặc số tài khoản.</p>
+                          <p className="break-all text-xs text-amber-700">URL QR: {qrUrl}</p>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -638,7 +709,7 @@ function PaymentModal({
           )}
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-slate-100 p-5 sm:flex-row">
+        <div className="flex flex-col gap-3 border-t border-slate-100 p-4 sm:flex-row sm:p-5">
           <button
             type="button"
             onClick={onClose}
@@ -654,7 +725,11 @@ function PaymentModal({
               className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:bg-slate-300"
             >
               <CreditCard size={16} />
-              {isLoading ? "Đang xử lý..." : "Xác nhận thanh toán"}
+              {isLoading
+                ? "Đang xử lý..."
+                : method === "BANK_TRANSFER"
+                  ? "Hoàn thành thanh toán"
+                  : "Xác nhận thanh toán"}
             </button>
           )}
         </div>

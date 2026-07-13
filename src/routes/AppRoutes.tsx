@@ -40,8 +40,8 @@ import MyVehicles from "../pages/customer/MyVehicles";
 import Booking from "../pages/customer/Booking";
 import BookingSuccess from "../pages/customer/BookingSuccess";  
 import MyBookings from "../pages/customer/MyBookings";
-import Rewards from "../pages/customer/Rewards";
-import ServicesPromotions from "../pages/customer/ServicesPromotions";
+import MyTransactions from "../pages/customer/MyTransactions";
+import MyPoints from "../pages/customer/MyPoints";
 
 import ProtectedRoute, { ManagerRoute, AdminRoute } from "./ProtectedRoute";
 
@@ -240,22 +240,23 @@ const AppRoutes = () => {
         />
 
         <Route
-          path="/customer/rewards"
+          path="/customer/transactions"
           element={
             <ProtectedRoute>
-              <Rewards />
+              <MyTransactions />
             </ProtectedRoute>
           }
         />
 
         <Route
-          path="/customer/services"
+          path="/customer/points"
           element={
             <ProtectedRoute>
-              <ServicesPromotions />
+              <MyPoints />
             </ProtectedRoute>
           }
         />
+
       </Routes>
     </BrowserRouter>
   );

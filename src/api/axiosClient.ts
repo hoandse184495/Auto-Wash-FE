@@ -63,10 +63,18 @@ axiosClient.interceptors.response.use(
 export function getErrorMessage(error: unknown): string {
   if (error && typeof error === "object" && "isAxiosError" in error) {
     const e = error as Record<string, unknown>;
-    const data = (e.response as Record<string, unknown> | undefined)?.data as Record<string, unknown> | undefined;
-    if (data?.message) return String(data.message);
-    if (Array.isArray(data?.errors) && data.errors.length > 0) {
-      const first = data.errors[0];
+    const data = (e.response as Record<string, unknown> | undefined)?.data;
+    if (typeof data === "string" && data.trim()) return data;
+
+    const payload =
+      data && typeof data === "object"
+        ? (data as Record<string, unknown>)
+        : undefined;
+
+    if (payload?.message) return String(payload.message);
+    if (payload?.error) return String(payload.error);
+    if (Array.isArray(payload?.errors) && payload.errors.length > 0) {
+      const first = payload.errors[0];
       if (typeof first === "string") return first;
       if (typeof first === "object" && first !== null && "message" in first) {
         return String((first as Record<string, unknown>).message);

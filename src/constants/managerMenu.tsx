@@ -25,7 +25,7 @@ export const managerMenu = [
   },
   {
     path: "/manager/transactions",
-    name: "Giao dịch & Hóa đơn",
+    name: "Giao dịch",
     icon: <ReceiptText size={20} />,
   },
   {

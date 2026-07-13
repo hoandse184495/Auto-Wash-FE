@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axiosClient from "../../api/axiosClient";
+import heroImage from "../../assets/hero-bg.jpg";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRegex = /^[0-9]{9,15}$/;
@@ -117,27 +118,48 @@ function Register() {
     }
   }
 
+  const isSuccess = message.toLowerCase().includes("thành công");
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
+    <div className="relative min-h-screen overflow-hidden bg-slate-950">
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(${heroImage})` }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-950/85 via-cyan-950/70 to-amber-900/50" />
+      <div className="auth-grid-pattern" />
+      <div className="auth-float absolute -left-16 top-24 h-52 w-52 rounded-full bg-cyan-400/20 blur-3xl" />
+      <div className="auth-float absolute -right-10 bottom-16 h-48 w-48 rounded-full bg-amber-300/20 blur-3xl" />
+
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl items-center px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid w-full items-center gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="auth-enter-up hidden rounded-3xl border border-white/20 bg-white/10 p-8 text-white backdrop-blur-sm lg:block">
+            <p className="inline-flex rounded-full border border-white/40 px-3 py-1 text-xs uppercase tracking-[0.2em] text-cyan-100">
+              Auto Wash Pro
+            </p>
+            <h2 className="mt-6 text-4xl font-semibold leading-tight">
+              Trải nghiệm đặt lịch nhanh, tích điểm tự động và theo dõi lịch sử dịch vụ liền mạch.
+            </h2>
+            <p className="mt-5 max-w-xl text-sm leading-6 text-cyan-50/90">
+              Tạo tài khoản chỉ trong vài bước để sử dụng trọn bộ tiện ích dành cho khách hàng của hệ thống.
+            </p>
+          </div>
+
+          <div className="auth-enter-up auth-glow w-full rounded-3xl border border-white/30 bg-white/90 p-6 shadow-2xl backdrop-blur-sm sm:p-8">
         <button
-  type="button"
-  onClick={() => navigate(-1)}
-  className="mb-4 text-sm font-medium text-gray-600 hover:text-blue-600"
->
-  ← Quay lại
-</button>
+              type="button"
+              onClick={() => navigate(-1)}
+              className="mb-5 text-sm font-medium text-slate-600 transition hover:text-slate-900"
+            >
+              ← Quay lại
+            </button>
 
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
-          Đăng ký
-        </h1>
-        <p className="text-center text-gray-500 mb-6">
-          Tạo tài khoản để sử dụng hệ thống
-        </p>
+            <h1 className="text-3xl font-bold text-slate-900">Đăng ký</h1>
+            <p className="mt-2 text-sm text-slate-600">Tạo tài khoản để bắt đầu sử dụng dịch vụ.</p>
 
-        <form onSubmit={handleRegister} className="space-y-4">
+            <form onSubmit={handleRegister} className="mt-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="mb-1 block text-sm font-medium text-slate-700">
               Họ và tên
             </label>
 
@@ -146,12 +168,12 @@ function Register() {
               placeholder="Nhập họ và tên"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-xl border border-slate-300/80 bg-white px-4 py-2.5 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="mb-1 block text-sm font-medium text-slate-700">
               Số điện thoại
             </label>
 
@@ -160,12 +182,12 @@ function Register() {
               placeholder="Nhập số điện thoại"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-xl border border-slate-300/80 bg-white px-4 py-2.5 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="mb-1 block text-sm font-medium text-slate-700">
               Email
             </label>
 
@@ -178,20 +200,20 @@ function Register() {
                 setIsCodeSent(false);
                 setCode("");
               }}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-xl border border-slate-300/80 bg-white px-4 py-2.5 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
             />
           </div>
 
           <button
             type="button"
             onClick={handleSendCode}
-            className="w-full bg-gray-700 text-white py-2 rounded-lg font-semibold hover:bg-gray-800 transition"
+            className="w-full rounded-xl bg-slate-800 py-2.5 font-semibold text-white transition hover:bg-slate-900"
           >
             {isCodeSent ? "Gửi lại mã xác minh" : "Gửi mã xác minh"}
           </button>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="mb-1 block text-sm font-medium text-slate-700">
               Mã xác minh
             </label>
 
@@ -204,12 +226,12 @@ function Register() {
                 const onlyNumber = e.target.value.replace(/\D/g, "");
                 setCode(onlyNumber);
               }}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-xl border border-slate-300/80 bg-white px-4 py-2.5 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="mb-1 block text-sm font-medium text-slate-700">
               Mật khẩu
             </label>
 
@@ -218,12 +240,12 @@ function Register() {
               placeholder="Nhập mật khẩu"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-xl border border-slate-300/80 bg-white px-4 py-2.5 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="mb-1 block text-sm font-medium text-slate-700">
               Nhập lại mật khẩu
             </label>
 
@@ -232,31 +254,39 @@ function Register() {
               placeholder="Nhập lại mật khẩu"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-xl border border-slate-300/80 bg-white px-4 py-2.5 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition duration-200"
+            className="w-full rounded-xl bg-gradient-to-r from-slate-900 to-cyan-900 py-2.5 font-semibold text-white transition hover:from-slate-800 hover:to-cyan-800"
           >
             Đăng ký
           </button>
         </form>
 
         {message && (
-          <p className="text-center mt-4 text-sm text-red-500">{message}</p>
+          <p
+            className={`mt-4 text-center text-sm ${
+              isSuccess ? "text-emerald-600" : "text-rose-600"
+            }`}
+          >
+            {message}
+          </p>
         )}
 
-        <p className="text-center text-sm text-gray-600 mt-6">
+            <p className="mt-6 text-center text-sm text-slate-600">
           Đã có tài khoản?{" "}
           <Link
             to="/login"
-            className="text-blue-600 font-medium hover:underline"
+            className="font-semibold text-cyan-700 hover:underline"
           >
             Đăng nhập
           </Link>
         </p>
+          </div>
+        </div>
       </div>
     </div>
   );

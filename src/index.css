@@ -8,3 +8,49 @@ body,
   margin: 0;
   padding: 0;
 }
+
+.auth-grid-pattern {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.8), transparent 75%);
+  pointer-events: none;
+}
+
+.auth-enter-up {
+  animation: authEnterUp 520ms ease-out both;
+}
+
+.auth-float {
+  animation: authFloat 7s ease-in-out infinite;
+}
+
+.auth-glow {
+  box-shadow: 0 22px 70px rgba(8, 145, 178, 0.2);
+}
+
+@keyframes authEnterUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes authFloat {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}

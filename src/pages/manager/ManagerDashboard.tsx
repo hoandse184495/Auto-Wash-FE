@@ -28,6 +28,35 @@ interface RecentBooking {
   status: "pending" | "in_progress" | "completed";
 }
 
+interface StaffBooking {
+  BookingGroupID: number;
+  StartTime: string;
+  Customers?: {
+    Users?: {
+      FullName?: string;
+    };
+  };
+  BookingItems?: Array<{
+    BookingItemID: number;
+    Status: string;
+    Vehicles?: {
+      LicensePlate?: string;
+    };
+    ServiceLineItems?: Array<{
+      Services?: {
+        ServiceName?: string;
+      };
+    }>;
+  }>;
+}
+
+function formatTime(value: string | null | undefined) {
+  if (!value) return "--:--";
+  const text = String(value);
+  if (text.includes("T")) return text.substring(11, 16);
+  return text.substring(0, 5);
+}
+
 const ManagerDashboard = () => {
   const [stats, setStats] = useState<Stats>({
     totalStaff: 0,
@@ -36,7 +65,6 @@ const ManagerDashboard = () => {
     pendingBookings: 0,
   });
   const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([]);
-  void setRecentBookings;
   const [branchName, setBranchName] = useState<string>("");
 
   useEffect(() => {
@@ -78,6 +106,87 @@ const ManagerDashboard = () => {
       }
     };
     fetchTotalStaff();
+  }, []);
+
+  useEffect(() => {
+    const fetchManagerOverview = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const res = await axiosClient.get("/api/dashboard/manager-overview", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const data = res.data?.data || {};
+
+        setStats((prev) => ({
+          ...prev,
+          todayBookings: Number(data.todayBookings || 0),
+          completedToday: Number(data.completedToday || 0),
+          pendingBookings: Number(data.pendingBookingsToday || 0),
+        }));
+      } catch (error) {
+        console.error("Lỗi tải số liệu tổng quan manager:", error);
+      }
+    };
+
+    const fetchRecentBookings = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const now = new Date();
+        const bookingDate = [
+          now.getFullYear(),
+          String(now.getMonth() + 1).padStart(2, "0"),
+          String(now.getDate()).padStart(2, "0"),
+        ].join("-");
+
+        const res = await axiosClient.get("/api/staff-operations/today-bookings", {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { bookingDate },
+        });
+
+        const data = (res.data?.data || []) as StaffBooking[];
+        const flatItems = data.flatMap((booking) =>
+          (booking.BookingItems || []).map((item) => ({ booking, item }))
+        );
+
+        const recent = flatItems
+          .sort((a, b) => String(b.booking.StartTime || "").localeCompare(String(a.booking.StartTime || "")))
+          .slice(0, 8)
+          .map(({ booking, item }) => {
+            const service =
+              item.ServiceLineItems?.map((line) => line.Services?.ServiceName)
+                .filter(Boolean)
+                .join(", ") || "Chưa có dịch vụ";
+
+            const status: RecentBooking["status"] =
+              item.Status === "Completed"
+                ? "completed"
+                : item.Status === "CheckedIn" || item.Status === "InProgress"
+                  ? "in_progress"
+                  : "pending";
+
+            return {
+              id: item.BookingItemID,
+              customerName: booking.Customers?.Users?.FullName || "",
+              licensePlate: item.Vehicles?.LicensePlate || "—",
+              service,
+              time: formatTime(booking.StartTime),
+              status,
+            };
+          });
+
+        setRecentBookings(recent);
+      } catch (error) {
+        console.error("Lỗi tải lịch hẹn gần đây manager:", error);
+      }
+    };
+
+    fetchManagerOverview();
+    fetchRecentBookings();
   }, []);
 
   const getStatusBadge = (status: string) => {
@@ -143,7 +252,7 @@ const ManagerDashboard = () => {
         />
 
         <StatCard
-          title="Đã hoàn thành"
+          title="Đã hoàn thành hôm nay"
           value={stats.completedToday}
           icon={<CircleCheckBig className="text-emerald-600" size={28} />}
         />

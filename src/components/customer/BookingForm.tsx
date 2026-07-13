@@ -33,6 +33,9 @@ type BookingFormProps = {
   setBookingDate: Dispatch<SetStateAction<string>>;
   startTime: string;
   setStartTime: Dispatch<SetStateAction<string>>;
+  usePoints: string;
+  setUsePoints: Dispatch<SetStateAction<string>>;
+  availablePoints: number;
   note: string;
   setNote: Dispatch<SetStateAction<string>>;
   branches: Branch[];
@@ -66,6 +69,9 @@ const BookingForm = ({
   setBookingDate,
   startTime,
   setStartTime,
+  usePoints,
+  setUsePoints,
+  availablePoints,
   note,
   setNote,
   branches,
@@ -331,6 +337,7 @@ const BookingForm = ({
               const isSelected = startTime === slot.StartTime;
               const isDisabled =
                 slot.Available <= 0 || slot.Status !== "Available";
+              const isFull = slot.Available <= 0 || slot.Status !== "Available";
 
               return (
                 <button
@@ -341,7 +348,9 @@ const BookingForm = ({
                   className={`rounded-lg border px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 ${
                     isSelected
                       ? "border-sky-600 bg-sky-600 text-white shadow-lg shadow-sky-100"
-                      : "border-slate-300 bg-white text-slate-700 hover:border-sky-500 hover:text-sky-700"
+                      : isFull
+                        ? "border-slate-200 bg-slate-100 text-slate-400"
+                        : "border-slate-300 bg-white text-slate-700 hover:border-sky-500 hover:text-sky-700"
                   }`}
                 >
                   <div className="font-bold">
@@ -353,7 +362,7 @@ const BookingForm = ({
                       isSelected ? "text-sky-50" : "text-slate-500"
                     }`}
                   >
-                    {slot.ShiftName} | Còn {slot.Available} chỗ
+                    {slot.ShiftName} | {slot.StaffCount} nhân viên | {isFull ? "Hết chỗ" : `Còn ${slot.Available} chỗ`}
                   </div>
                 </button>
               );
@@ -363,6 +372,27 @@ const BookingForm = ({
       </div>
 
       <div className="mt-8">
+        <label className="mb-2 block text-sm font-bold text-slate-700">
+          Dùng điểm để giảm tiền
+        </label>
+
+        <input
+          type="number"
+          min={0}
+          max={availablePoints}
+          step={1}
+          value={usePoints}
+          onChange={(e) => setUsePoints(e.target.value)}
+          placeholder="Nhập số điểm muốn dùng"
+          className={inputClass}
+        />
+
+        <p className="mt-2 text-sm text-slate-600">
+          Điểm hiện có: <span className="font-semibold text-slate-900">{availablePoints}</span>. Điểm sẽ được trừ khi thanh toán thành công.
+        </p>
+      </div>
+
+      <div className="mt-6">
         <label className="mb-2 block text-sm font-bold text-slate-700">
           Ghi chú
         </label>
