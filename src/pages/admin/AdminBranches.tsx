@@ -103,7 +103,7 @@ const AdminBranches = () => {
     setError(null);
     try {
       const [branchList, userList] = await Promise.all([
-        branchService.getAllBranches({ includeInactive: true }),
+        branchService.getAllBranches({ status: "Active" }),
         userService.getAllUsers(),
       ]);
 
