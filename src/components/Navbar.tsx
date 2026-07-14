@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import customerApi from "../services/customerApi";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -8,6 +9,32 @@ const Navbar = () => {
   const token = localStorage.getItem("token");
   const userString = localStorage.getItem("user");
   const user = token && userString ? JSON.parse(userString) : null;
+  const [tierName, setTierName] = useState("Thành viên");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadTierName = async () => {
+      if (!token || !user || user.role !== "Customer") {
+        setTierName("Thành viên");
+        return;
+      }
+
+      try {
+        const response = await customerApi.getPointsSummary();
+        const nextTierName = response.data?.data?.tierName || "Thành viên";
+        if (isMounted) setTierName(nextTierName);
+      } catch {
+        if (isMounted) setTierName("Thành viên");
+      }
+    };
+
+    loadTierName();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token, user?.userId, user?.role]);
 
   function handleLogout() {
     localStorage.removeItem("token");
@@ -76,7 +103,7 @@ const Navbar = () => {
                 {user.fullName || user.email || "Người dùng"}
               </p>
 
-              <p className="text-xs text-sky-600">Hạng: Thành viên</p>
+              <p className="text-xs text-sky-600">Hạng: {tierName}</p>
             </button>
 
             {showMenu && (
